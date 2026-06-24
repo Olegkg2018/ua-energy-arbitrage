@@ -1642,8 +1642,8 @@
                 }
             ];
 
-            // If historical date, show actual prices too
-            if (data.is_historical && data.forecast.actual) {
+            // If actual prices are available, show them too (even if it's tomorrow's forecast)
+            if (data.forecast.actual) {
                 datasets.push({
                     label: 'Фактичні ціни РДН (грн/МВт-год)',
                     data: data.forecast.actual,

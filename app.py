@@ -123,7 +123,20 @@ def forecast():
             # Fetch live weather forecast
             print(f"Fetching weather forecast for {target_date_str}")
             weather_forecast = dm.fetch_weather_forecast(lat, lon, api_key)
+            
+            # Try to fetch actual prices for the target date if already published on oree.com.ua
             actual_prices = None
+            try:
+                df_prices = dm.fetch_oree_prices_for_month(target_date.month, target_date.year)
+                if not df_prices.empty:
+                    df_prices['Datetime'] = pd.to_datetime(df_prices['Datetime'])
+                    day_mask_prices = df_prices['Datetime'].dt.date == target_date
+                    df_day_prices = df_prices[day_mask_prices].sort_values('Datetime')
+                    if len(df_day_prices) == 24:
+                        actual_prices = df_day_prices['Price'].tolist()
+                        print(f"Loaded actual prices for tomorrow/target date {target_date_str} from cache")
+            except Exception as e:
+                print(f"Error loading actual prices for forecast date: {e}")
             
         # 2. Get past prices to construct lags
         # We need the last 168 hours of prices prior to target_date
