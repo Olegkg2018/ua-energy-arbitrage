@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Прогнозирование Цен & Арбитраж Электроэнергии в Украине</title>
+    <title>Прогнозування цін та арбітраж електроенергії в Україні</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -644,6 +644,159 @@
         .modal-list li {
             margin-bottom: 0.5rem;
         }
+
+        /* Light Theme Styles */
+        body.light-theme {
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --panel-bg: rgba(255, 255, 255, 0.75);
+            --panel-border: rgba(15, 23, 42, 0.08);
+            --panel-border-hover: rgba(15, 23, 42, 0.15);
+            
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --accent-cyan: #0891b2;
+            --accent-blue: #2563eb;
+            --accent-indigo: #4946eb;
+            
+            --color-success: #059669;
+            --color-warning: #d97706;
+            --color-error: #dc2626;
+            --color-charge: #0891b2;
+            --color-discharge: #e11d48;
+        }
+
+        body.light-theme .glow-blob {
+            opacity: 0.08;
+        }
+
+        body.light-theme .form-control {
+            background: rgba(255, 255, 255, 0.95);
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        body.light-theme .form-control:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.15);
+        }
+
+        body.light-theme .btn {
+            background: rgba(15, 23, 42, 0.04);
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .btn:hover {
+            background: rgba(15, 23, 42, 0.08);
+            border-color: rgba(15, 23, 42, 0.15);
+        }
+
+        body.light-theme .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(8, 145, 178, 0.2);
+        }
+        
+        body.light-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #0e7490 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 20px rgba(8, 145, 178, 0.3);
+        }
+
+        body.light-theme .btn-success {
+            background: rgba(5, 150, 105, 0.1);
+            border-color: rgba(5, 150, 105, 0.2);
+            color: #047857;
+        }
+
+        body.light-theme .btn-success:hover {
+            background: rgba(5, 150, 105, 0.18);
+            border-color: rgba(5, 150, 105, 0.35);
+        }
+
+        body.light-theme .range-slider {
+            background: rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .range-slider::-webkit-slider-thumb {
+            box-shadow: 0 0 8px rgba(8, 145, 178, 0.3);
+        }
+
+        body.light-theme .info-card {
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        body.light-theme .explanation-item {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: rgba(15, 23, 42, 0.03);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        body.light-theme .rule-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: var(--panel-border);
+        }
+
+        body.light-theme .rule-card h4 {
+            color: #0f172a;
+        }
+
+        body.light-theme .tabs {
+            background: rgba(15, 23, 42, 0.05);
+            border-color: rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .tab-btn.active {
+            background: var(--accent-cyan);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
+        }
+
+        body.light-theme .loading-overlay {
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        body.light-theme .loading-text {
+            color: #0f172a;
+        }
+
+        body.light-theme .spinner {
+            border: 4px solid rgba(15, 23, 42, 0.08);
+            border-top-color: var(--accent-cyan);
+        }
+
+        body.light-theme .modal-overlay {
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        body.light-theme .modal-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-color: rgba(15, 23, 42, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+        }
+
+        body.light-theme .modal-close {
+            background: rgba(15, 23, 42, 0.05);
+            border-color: rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .modal-close:hover {
+            background: rgba(15, 23, 42, 0.1);
+            color: #0f172a;
+        }
+
+        body.light-theme #aboutBtn {
+            background: rgba(8, 145, 178, 0.1);
+            border-color: rgba(8, 145, 178, 0.2);
+            color: #0369a1;
+        }
+
+        body.light-theme #aboutBtn:hover {
+            background: rgba(8, 145, 178, 0.18);
+            border-color: rgba(8, 145, 178, 0.35);
+        }
     </style>
 </head>
 <body>
@@ -652,7 +805,7 @@
 
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-        <div class="loading-text" id="loadingText">Загрузка прогноза и оптимизация...</div>
+        <div class="loading-text" id="loadingText">Завантаження прогнозу та оптимізація...</div>
     </div>
 
     <div class="app-container">
@@ -660,20 +813,23 @@
         <header>
             <div class="logo-section">
                 <h1>UA Energy Arbitrage & Price Forecasting AI</h1>
-                <p>Моделирование РДН / ВДР цен, профицита сети и математически идеального расписания батарей</p>
+                <p>Моделювання цін РДН / ВДР, профіциту мережі та математично ідеального розкладу батарей</p>
             </div>
             <div class="header-actions">
                 <div class="metrics-badge" id="modelMetricsBadge">
                     <i data-lucide="cpu" style="width:16px;height:16px"></i>
                     XGBoost: R² = <span id="r2_metric">-</span> | MAE = <span id="mae_metric">-</span> грн
                 </div>
+                <button class="btn" id="themeToggleBtn" style="background:rgba(255,255,255,0.08);border-color:var(--panel-border);padding:0.6rem 0.8rem;" title="Змінити тему">
+                    <i data-lucide="sun" id="themeIcon" style="width:16px;height:16px;"></i>
+                </button>
                 <button class="btn" id="aboutBtn" style="background:rgba(6, 182, 212, 0.15);border-color:rgba(6, 182, 212, 0.3);color:#c7d2fe;">
                     <i data-lucide="info" style="width:16px;height:16px;color:var(--accent-cyan)"></i>
                     Про проєкт
                 </button>
                 <button class="btn btn-success" id="retrainBtn">
                     <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
-                    Переобучить AI модель
+                    Перенавчити AI модель
                 </button>
             </div>
         </header>
@@ -684,28 +840,28 @@
             <div>
                 <h3 class="section-title">
                     <i data-lucide="calendar" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
-                    Дата и режим работы
+                    Дата та режим роботи
                 </h3>
                 
                 <div class="form-group">
-                    <label for="forecastDate">Выберите дату для симуляции</label>
+                    <label for="forecastDate">Оберіть дату для симуляції</label>
                     <!-- Default to 2026-06-23 to verify fixes on user's target date -->
                     <input type="date" class="form-control" id="forecastDate" value="2026-06-23" min="2025-01-01" max="2026-12-31">
                 </div>
 
                 <div class="form-group">
-                    <label for="operationalMode">Сценарий использования батареи</label>
+                    <label for="operationalMode">Сценарій використання батареї</label>
                     <select class="form-control" id="operationalMode">
-                        <option value="arbitrage">Сетевой Арбитраж (FTM)</option>
-                        <option value="self_consumption">Снижение пиков потребителя (BTM)</option>
+                        <option value="arbitrage">Мережевий Арбітраж (FTM)</option>
+                        <option value="self_consumption">Зниження пиків споживача (BTM)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="aiModel">Модель предсказания</label>
+                    <label for="aiModel">Модель прогнозування</label>
                     <select class="form-control" id="aiModel">
-                        <option value="xgboost">XGBoost Regressor (Градуированный Бустинг)</option>
-                        <option value="mlp">Нейронная сеть (XGBoost + MLP Hybrid)</option>
+                        <option value="xgboost">XGBoost Regressor (Градієнтний Бустинг)</option>
+                        <option value="mlp">Нейронна мережа (XGBoost + MLP Hybrid)</option>
                     </select>
                 </div>
             </div>
@@ -714,12 +870,12 @@
             <div>
                 <h3 class="section-title">
                     <i data-lucide="sliders" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
-                    Факторы влияния на рынок
+                    Фактори впливу на ринок
                 </h3>
                 
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Цена на газ TTF (EUR/MWh)</span>
+                        <span>Ціна на газ TTF (EUR/MWh)</span>
                         <span class="val" id="gasVal">35</span>
                     </div>
                     <input type="range" class="range-slider" id="gasPrice" min="20" max="100" value="35">
@@ -727,7 +883,7 @@
 
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Выведено мощностей АЭС (%)</span>
+                        <span>Виведено потужностей АЕС (%)</span>
                         <span class="val" id="nukeVal">15%</span>
                     </div>
                     <input type="range" class="range-slider" id="nuclearOutage" min="0" max="100" value="15">
@@ -735,7 +891,7 @@
 
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Повреждения солнечных СЭС (%)</span>
+                        <span>Пошкодження сонячних СЕС (%)</span>
                         <span class="val" id="solarVal">0%</span>
                     </div>
                     <input type="range" class="range-slider" id="solarStrike" min="0" max="100" value="0">
@@ -743,7 +899,7 @@
 
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Коэффициент спроса рынка</span>
+                        <span>Коефіцієнт попиту ринку</span>
                         <span class="val" id="coeffVal">1.0</span>
                     </div>
                     <input type="range" class="range-slider" id="marketCoeff" min="0.5" max="1.5" step="0.05" value="1.0">
@@ -751,7 +907,7 @@
 
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Активность на ВДР (объем)</span>
+                        <span>Активність на ВДР (обсяг)</span>
                         <span class="val" id="vdrVal">1.0</span>
                     </div>
                     <input type="range" class="range-slider" id="vdrVolume" min="0.2" max="2.0" step="0.1" value="1.0">
@@ -759,7 +915,7 @@
 
                 <div class="slider-group">
                     <div class="slider-header">
-                        <span>Импорт/Экспорт сети (MW)</span>
+                        <span>Імпорт/Експорт мережі (MW)</span>
                         <span class="val" id="gridVal">0</span>
                     </div>
                     <input type="range" class="range-slider" id="gridImport" min="-2000" max="2000" step="100" value="0">
@@ -770,27 +926,27 @@
             <div>
                 <h3 class="section-title">
                     <i data-lucide="battery" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
-                    Характеристики батареи
+                    Характеристики батареї
                 </h3>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Ёмкость (кВт-ч)</label>
+                        <label>Ємність (кВт-год)</label>
                         <input type="number" class="form-control" id="batCapacity" value="1000">
                     </div>
                     <div class="form-group">
-                        <label>Мощность (кВт)</label>
+                        <label>Потужність (кВт)</label>
                         <input type="number" class="form-control" id="batPower" value="250">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>КПД Заряда (%)</label>
+                        <label>ККД Заряду (%)</label>
                         <input type="number" class="form-control" id="effCharge" value="95">
                     </div>
                     <div class="form-group">
-                        <label>КПД Разряда (%)</label>
+                        <label>ККД Розряду (%)</label>
                         <input type="number" class="form-control" id="effDischarge" value="95">
                     </div>
                 </div>
@@ -808,11 +964,11 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Циклов в сутки</label>
+                        <label>Циклів на добу</label>
                         <input type="number" class="form-control" id="maxCycles" step="0.1" value="1.5">
                     </div>
                     <div class="form-group">
-                        <label>Деградация UAH/кВт-ч</label>
+                        <label>Деградація UAH/кВт-год</label>
                         <input type="number" class="form-control" id="degCost" step="0.1" value="1.2">
                     </div>
                 </div>
@@ -822,27 +978,27 @@
             <div>
                 <h3 class="section-title">
                     <i data-lucide="dollar-sign" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
-                    Тарифы на передачу и сеть
+                    Тарифи на передачу та мережу
                 </h3>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Передача (грн/МВт-ч)</label>
+                        <label>Передача (грн/МВт-год)</label>
                         <input type="number" class="form-control" id="tariffTrans" value="528.57">
                     </div>
                     <div class="form-group">
-                        <label>Распределение (грн/МВт-ч)</label>
+                        <label>Розподіл (грн/МВт-год)</label>
                         <input type="number" class="form-control" id="tariffDist" value="1500.0">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Диспетчер (грн/МВт-ч)</label>
+                        <label>Диспетчер (грн/МВт-год)</label>
                         <input type="number" class="form-control" id="tariffDisp" value="104.57">
                     </div>
                     <div class="form-group">
-                        <label>Маржа (грн/МВт-ч)</label>
+                        <label>Маржа (грн/МВт-год)</label>
                         <input type="number" class="form-control" id="tariffMargin" value="100.0">
                     </div>
                 </div>
@@ -850,13 +1006,13 @@
 
             <!-- API key -->
             <div class="form-group">
-                <label>OpenWeather API Key (необязательно)</label>
-                <input type="password" class="form-control" id="weatherApiKey" placeholder="Использовать Open-Meteo бесплатно">
+                <label>OpenWeather API Key (необов'язково)</label>
+                <input type="password" class="form-control" id="weatherApiKey" placeholder="Використовувати Open-Meteo безкоштовно">
             </div>
 
             <button class="btn btn-primary" id="runBtn" style="justify-content:center;font-weight:600;">
                 <i data-lucide="play" style="width:16px;height:16px"></i>
-                Рассчитать Расписание
+                Розрахувати Розклад
             </button>
         </div>
 
@@ -867,37 +1023,37 @@
                 <div class="kpi-card">
                     <div class="kpi-label">
                         <i data-lucide="trending-up" style="width:14px;height:14px;color:var(--color-success)"></i>
-                        Чистая Прибыль
+                        Чистий прибуток
                     </div>
                     <div class="kpi-value profit" id="kpiNetProfit">-</div>
-                    <div class="kpi-trend">С учетом износа АКБ</div>
+                    <div class="kpi-trend">З урахуванням зносу АКБ</div>
                 </div>
 
                 <div class="kpi-card">
                     <div class="kpi-label">
                         <i data-lucide="download" style="width:14px;height:14px;color:var(--color-warning)"></i>
-                        Стоимость Заряда
+                        Вартість заряду
                     </div>
                     <div class="kpi-value cost" id="kpiChargeCost">-</div>
-                    <div class="kpi-trend">Включая тарифы сети</div>
+                    <div class="kpi-trend">Включаючи тарифи мережі</div>
                 </div>
 
                 <div class="kpi-card">
                     <div class="kpi-label">
                         <i data-lucide="upload" style="width:14px;height:14px;color:var(--color-charge)"></i>
-                        Доход Разряда
+                        Дохід від розряду
                     </div>
                     <div class="kpi-value revenue" id="kpiDischargeRevenue">-</div>
-                    <div class="kpi-trend">Продажа или замещение</div>
+                    <div class="kpi-trend">Продаж або заміщення</div>
                 </div>
 
                 <div class="kpi-card">
                     <div class="kpi-label">
                         <i data-lucide="repeat" style="width:14px;height:14px;color:var(--accent-indigo)"></i>
-                        Использовано циклов
+                        Використано циклів
                     </div>
                     <div class="kpi-value cycles" id="kpiCycles">-</div>
-                    <div class="kpi-trend">Лимит в сутки: <span id="kpiMaxCycles">1.5</span></div>
+                    <div class="kpi-trend">Ліміт на добу: <span id="kpiMaxCycles">1.5</span></div>
                 </div>
             </div>
 
@@ -906,7 +1062,7 @@
                 <div class="chart-header">
                     <div class="chart-title">
                         <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
-                        Цены на электроэнергию (РДН Украина)
+                        Ціни на електроенергію (РДН Україна)
                     </div>
                     <div id="chartTypeBadge" class="metrics-badge" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:var(--accent-cyan)">
                         Прогноз
@@ -922,10 +1078,10 @@
                 <div class="chart-header">
                     <div class="chart-title">
                         <i data-lucide="zap" style="width:18px;height:18px;color:var(--color-success)"></i>
-                        Математический график заряда/разряда (PuLP Solver)
+                        Математичний графік заряду/розряду (PuLP Solver)
                     </div>
                     <div id="socBadge" class="metrics-badge" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--color-success)">
-                        Состояние заряда (SoC)
+                        Стан заряду (SoC)
                     </div>
                 </div>
                 <div class="chart-container">
@@ -937,12 +1093,12 @@
             <div class="info-card">
                 <h3>
                     <i data-lucide="info" style="width:18px;height:18px"></i>
-                    Анализ прогноза и рыночные факторы
+                    Аналіз прогнозу та ринкові фактори
                 </h3>
                 <div class="explanations-list" id="explanationsList">
                     <div class="explanation-item">
                         <i data-lucide="help-circle" class="explanation-icon" style="width:16px;height:16px;color:var(--text-muted)"></i>
-                        <div>Выберите дату и нажмите кнопку "Рассчитать Расписание" для получения анализа.</div>
+                        <div>Оберіть дату та натисніть кнопку "Розрахувати Розклад" для отримання аналізу.</div>
                     </div>
                 </div>
 
@@ -951,24 +1107,24 @@
                     <div class="rule-card">
                         <h4>
                             <i data-lucide="sun" style="width:14px;height:14px;color:var(--color-warning)"></i>
-                            Почему цена падает до 10 грн/МВт-ч?
+                            Чому ціна падає до 10 грн/МВт-год?
                         </h4>
                         <p>
-                            В периоды высокого профицита (избытка) солнечной энергии в дневные часы (11:00-16:00), особенно по выходным,
-                            генераторы вынуждены подавать заявки по минимально регулируемой цене (10 грн/МВт-ч), чтобы гарантировать выкуп их объемов.
-                            Если профицит превышает потребление, рыночная цена DAM закрывается на этой отметке.
+                            У періоди високого профіциту (надлишку) сонячної енергії в денні години (11:00-16:00), особливо у вихідні,
+                            генератори змушені подавати заявки за мінімально регульованою ціною (10 грн/МВт-год), щоб гарантувати викуп їхніх обсягів.
+                            Якщо профіцит перевищує споживання, ринкова ціна DAM закривається на цій позначці.
                         </p>
                     </div>
 
                     <div class="rule-card">
                         <h4>
                             <i data-lucide="alert-triangle" style="width:14px;height:14px;color:var(--color-error)"></i>
-                            Влияние тарифов сети на арбитраж
+                            Вплив тарифів мережі на арбітраж
                         </h4>
                         <p>
-                            При покупке энергии из сети для зарядки юридические лица оплачивают DAM-цену + тариф на передачу + тариф на распределение.
-                            В режиме Сетевого Арбитража продажа идет только по DAM-цене, поэтому разница должна покрывать сумму сетевых тарифов (~2.2 грн/кВт-ч).
-                            В режиме замещения потребления (Behind-the-Meter) батарея экономит полные расходы, делая циклы намного выгоднее.
+                            При купівлі енергії з мережі для заряджання юридичні особи сплачують DAM-ціну + тариф на передачу + тариф на розподіл.
+                            У режимі мережевого арбітражу продаж йде тільки за DAM-ціною, тому різниця повинна покривати суму мережевих тарифів (~2.2 грн/кВт-год).
+                            У режимі заміщення споживання (Behind-the-Meter) батарея економить повні витрати, роблячи цикли набагато вигіднішими.
                         </p>
                     </div>
                 </div>
@@ -1035,7 +1191,7 @@
                         <li><strong>Виберіть дату:</strong> Зазначте завтрашній день для планування реального розкладу або будь-яку минулу дату для ретроспективного аналізу (система автоматично завантажить фактичні ціни).</li>
                         <li><strong>Налаштуйте параметри:</strong> Перевірте специфікації батареї та введіть актуальні для вашого підприємства тарифи на розподіл та передачу у лівій панелі (вони зберігаються автоматично).</li>
                         <li><strong>Оцініть фактори ринку:</strong> Якщо очікуються форс-мажори, ремонт блоків АЕС чи різкі зміни цін на паливо, скоригуйте слайдери факторів впливу для побудови альтернативного сценарію прогнозу.</li>
-                        <li><strong>Запустіть розрахунок:</strong> Натисніть кнопку <strong>"Рассчитать Расписание"</strong>. Система оновить ціни, виконає прогноз та побудує оптимальну стратегію.</li>
+                        <li><strong>Запустіть розрахунок:</strong> Натисніть кнопку <strong>"Розрахувати Розклад"</strong>. Система оновить ціни, виконає прогноз та побудує оптимальну стратегію.</li>
                         <li><strong>Застосуйте графік:</strong> Отриманий графік заряду (позитивний кВт) та розряду (негативний кВт) можна використовувати для програмування локальної системи управління енергією (EMS) акумуляторної батареї.</li>
                     </ol>
                 </div>
@@ -1049,6 +1205,36 @@
         lucide.createIcons();
 
         let lastLoadedDate = null;
+        let lastForecastData = null;
+
+        // Theme Switcher & Persistence
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            } else {
+                document.body.classList.remove('light-theme');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            }
+            lucide.createIcons();
+            
+            // Re-render charts with correct colors if data is available
+            if (lastForecastData) {
+                renderPriceChart(lastForecastData);
+                renderBatteryScheduleChart(lastForecastData);
+            }
+        }
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+                localStorage.setItem('BESS_theme', currentTheme);
+                applyTheme(currentTheme);
+            });
+        }
 
         // About Modal Triggers
         const aboutModal = document.getElementById('aboutModal');
@@ -1171,22 +1357,22 @@
             const overlay = document.getElementById('loadingOverlay');
             const text = document.getElementById('loadingText');
             overlay.style.display = 'flex';
-            text.textContent = 'Переобучение моделей на полных исторических данных (2025-2026 гг). Это займет около 10-20 секунд...';
+            text.textContent = 'Перенавчання моделей на повних історичних даних (2025-2026 рр). Це займе близько 10-20 секунд...';
             
             fetch('/api/retrain', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
                     overlay.style.display = 'none';
                     if (data.success) {
-                        alert('Модель успешно обучена!');
+                        alert('Модель успішно перенавчена!');
                         fetchMetrics();
                     } else {
-                        alert('Ошибка переобучения: ' + data.message);
+                        alert('Помилка перенавчання: ' + data.message);
                     }
                 })
                 .catch(err => {
                     overlay.style.display = 'none';
-                    alert('Сетевая ошибка при переобучении');
+                    alert('Мережева помилка при перенавчанні');
                 });
         });
 
@@ -1197,7 +1383,7 @@
             saveSettings();
             const overlay = document.getElementById('loadingOverlay');
             overlay.style.display = 'flex';
-            document.getElementById('loadingText').textContent = 'Загрузка прогноза погоды и оптимизация PuLP...';
+            document.getElementById('loadingText').textContent = 'Завантаження прогнозу погоди та оптимізація PuLP...';
 
             const payload = {
                 date: document.getElementById('forecastDate').value,
@@ -1242,7 +1428,7 @@
             .then(data => {
                 overlay.style.display = 'none';
                 if (data.error) {
-                    alert('Ошибка: ' + data.error);
+                    alert('Помилка: ' + data.error);
                     return;
                 }
                 
@@ -1250,11 +1436,12 @@
             })
             .catch(err => {
                 overlay.style.display = 'none';
-                alert('Ошибка соединения с бэкендом');
+                alert('Помилка з\'єднання з бекендом');
             });
         }
 
         function updateDashboard(data) {
+            lastForecastData = data;
             // If historical date and we have actual factors, we can update the sliders to show actual values
             // (but only if it's the first load of this date, to allow what-if adjustments).
             if (data.is_historical && data.actual_factors && lastLoadedDate !== data.date) {
@@ -1289,12 +1476,12 @@
             // Highlight historical vs prediction badge
             const badge = document.getElementById('chartTypeBadge');
             if (data.is_historical) {
-                badge.textContent = 'Исторический день (сравнение)';
+                badge.textContent = 'Історичний день (порівняння)';
                 badge.style.background = 'rgba(16,185,129,0.15)';
                 badge.style.borderColor = 'rgba(16,185,129,0.4)';
                 badge.style.color = 'var(--color-success)';
             } else {
-                badge.textContent = 'Прогноз на сутки';
+                badge.textContent = 'Прогноз на добу';
                 badge.style.background = 'rgba(6,182,212,0.15)';
                 badge.style.borderColor = 'rgba(6,182,212,0.4)';
                 badge.style.color = 'var(--accent-cyan)';
@@ -1308,15 +1495,15 @@
             const maxRad = Math.max(...data.weather.radiation);
             const avgTemp = (data.weather.temp.reduce((a,b)=>a+b, 0) / 24).toFixed(1);
             let weatherIcon = 'cloud-sun';
-            let weatherDesc = `Прогноз погоды: температура в среднем ${avgTemp}°C. `;
+            let weatherDesc = `Прогноз погоди: середня температура ${avgTemp}°C. `;
             if (maxRad > 500) {
-                weatherDesc += `Солнечно (макс. радиация ${maxRad.toFixed(0)} Вт/м²). Высокий потенциал солнечной генерации.`;
+                weatherDesc += `Сонячно (макс. радіація ${maxRad.toFixed(0)} Вт/м²). Високий потенціал сонячної генерації.`;
                 weatherIcon = 'sun';
             } else if (maxRad > 200) {
-                weatherDesc += `Переменная облачность (макс. радиация ${maxRad.toFixed(0)} Вт/м²).`;
+                weatherDesc += `Мінлива хмарність (макс. радіація ${maxRad.toFixed(0)} Вт/м²).`;
                 weatherIcon = 'cloud-sun';
             } else {
-                weatherDesc += `Пасмурно / ночь (радиация крайне низкая).`;
+                weatherDesc += `Хмарно / ніч (радіація вкрай низька).`;
                 weatherIcon = 'cloud';
             }
 
@@ -1356,6 +1543,11 @@
                 priceChart.destroy();
             }
 
+            const isLight = document.body.classList.contains('light-theme');
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+            const ticksColor = isLight ? '#475569' : '#9ca3af';
+            const legendColor = isLight ? '#0f172a' : '#f3f4f6';
+
             const modelType = document.getElementById('aiModel').value;
             const predictedPrices = modelType === 'xgboost' ? data.forecast.xgboost : data.forecast.mlp;
             
@@ -1365,7 +1557,7 @@
             
             const datasets = [
                 {
-                    label: 'Прогноз цен РДН (грн/МВт-ч)',
+                    label: 'Прогноз цін РДН (грн/МВт-год)',
                     data: predictedPrices,
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -1374,7 +1566,7 @@
                     fill: true
                 },
                 {
-                    label: 'Цена покупки (с сетевыми тарифами)',
+                    label: 'Ціна купівлі (з мережевими тарифами)',
                     data: buyPrices,
                     borderColor: 'rgba(245, 158, 11, 0.6)',
                     borderWidth: 1.5,
@@ -1387,7 +1579,7 @@
             // If historical date, show actual prices too
             if (data.is_historical && data.forecast.actual) {
                 datasets.push({
-                    label: 'Фактические цены РДН (грн/МВт-ч)',
+                    label: 'Фактичні ціни РДН (грн/МВт-год)',
                     data: data.forecast.actual,
                     borderColor: '#10b981',
                     borderWidth: 2.5,
@@ -1407,17 +1599,17 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#9ca3af' }
+                            grid: { color: gridColor },
+                            ticks: { color: ticksColor }
                         },
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#9ca3af' }
+                            grid: { color: gridColor },
+                            ticks: { color: ticksColor }
                         }
                     },
                     plugins: {
                         legend: {
-                            labels: { color: '#f3f4f6', font: { family: 'Inter' } }
+                            labels: { color: legendColor, font: { family: 'Inter' } }
                         },
                         tooltip: {
                             mode: 'index',
@@ -1433,6 +1625,11 @@
             if (batteryChart) {
                 batteryChart.destroy();
             }
+
+            const isLight = document.body.classList.contains('light-theme');
+            const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+            const ticksColor = isLight ? '#475569' : '#9ca3af';
+            const legendColor = isLight ? '#0f172a' : '#f3f4f6';
 
             const isHist = data.is_historical && data.actual_optimization;
             const optRes = isHist ? data.actual_optimization : data.optimization;
@@ -1455,7 +1652,7 @@
                     labels: Array.from({length: 24}, (_, i) => `${i + 1}`),
                     datasets: [
                         {
-                            label: 'Заряд (+) / Разряд (-) (кВт)',
+                            label: 'Заряд (+) / Розряд (-) (кВт)',
                             data: powerSchedule,
                             backgroundColor: powerSchedule.map(v => v >= 0 ? 'rgba(6, 182, 212, 0.6)' : 'rgba(244, 63, 94, 0.6)'),
                             borderColor: powerSchedule.map(v => v >= 0 ? '#06b6d4' : '#f43f5e'),
@@ -1463,7 +1660,7 @@
                             yAxisID: 'y_power',
                         },
                         {
-                            label: 'Уровень заряда SoC (кВт-ч)',
+                            label: 'Рівень заряду SoC (кВт-год)',
                             data: optRes.soc,
                             type: 'line',
                             borderColor: '#10b981',
@@ -1482,25 +1679,25 @@
                         y_power: {
                             type: 'linear',
                             position: 'left',
-                            title: { display: true, text: 'Мощность АКБ (кВт)', color: '#9ca3af' },
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#9ca3af' }
+                            title: { display: true, text: 'Потужність АКБ (кВт)', color: ticksColor },
+                            grid: { color: gridColor },
+                            ticks: { color: ticksColor }
                         },
                         y_soc: {
                             type: 'linear',
                             position: 'right',
-                            title: { display: true, text: 'Уровень заряда (кВт-ч)', color: '#9ca3af' },
+                            title: { display: true, text: 'Рівень заряду (кВт-год)', color: ticksColor },
                             grid: { drawOnChartArea: false }, // only show grid for left axis
-                            ticks: { color: '#9ca3af' }
+                            ticks: { color: ticksColor }
                         },
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#9ca3af' }
+                            grid: { color: gridColor },
+                            ticks: { color: ticksColor }
                         }
                     },
                     plugins: {
                         legend: {
-                            labels: { color: '#f3f4f6', font: { family: 'Inter' } }
+                            labels: { color: legendColor, font: { family: 'Inter' } }
                         },
                         tooltip: {
                             mode: 'index',
@@ -1512,6 +1709,8 @@
         }
 
         // On Page Load
+        const savedTheme = localStorage.getItem('BESS_theme') || 'dark';
+        applyTheme(savedTheme);
         loadSettings();
         updateSliderLabels();
         fetchMetrics();
