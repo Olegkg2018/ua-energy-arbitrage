@@ -81,6 +81,64 @@ docker run -d -p 5002:5000 --name ua-energy-arbitrage ua-energy-arbitrage
 docker run -d -p 5002:5000 --env-file .env --name ua-energy-arbitrage ua-energy-arbitrage
 ```
 
+### 3. Розгортання на зовнішньому сервері (ARM64 / VPS) / Deployment on a Remote ARM64 Server
+Якщо ви використовуєте хмарний сервер на базі ARM64 (наприклад, Oracle Cloud ARM, AWS Graviton, Raspberry Pi тощо), ви можете легко розгорнути цей комплекс. Базовий образ `python:3.10-slim` та бібліотеки (`pandas`, `numpy`, `xgboost`, `scikit-learn`, `pulp`) мають офіційні попередньо скомпільовані версії (wheels) для архітектури `aarch64` (ARM64).
+
+#### Крок 3.1. Підключіться до вашого сервера через SSH:
+```bash
+ssh user@your_server_ip
+```
+
+#### Крок 3.2. Встановіть Docker (якщо не встановлено, приклад для Ubuntu/Debian):
+```bash
+sudo apt-get update
+sudo apt-get install -y docker.io
+sudo systemctl enable --now docker
+# Дозволити користувачу запускати Docker без sudo (потрібно перепідключитися після виконання)
+sudo usermod -aG docker $USER
+```
+
+#### Крок 3.3. Клонуйте репозиторій та перейдіть у каталог:
+```bash
+git clone https://github.com/Olegkg2018/ua-energy-arbitrage.git
+cd ua-energy-arbitrage
+```
+
+#### Крок 3.4. Створіть файл `.env` для налаштування API ключів:
+```bash
+nano .env
+```
+Впишіть ваші API ключі (за бажанням, наприклад):
+```env
+OPENWEATHER_API_KEY=your_openweather_api_key
+```
+*(Збережіть та закрийте файл: натисніть `Ctrl+O`, `Enter`, а потім `Ctrl+X`)*
+
+#### Крок 3.5. Зберіть Docker-образ:
+Збірка виконується безпосередньо на ARM64-сервері:
+```bash
+docker build -t ua-energy-arbitrage .
+```
+
+#### Крок 3.6. Запустіть контейнер на порту 5002 з автоперезапуском:
+```bash
+docker run -d \
+  -p 5002:5000 \
+  --env-file .env \
+  --restart always \
+  --name ua-energy-arbitrage \
+  ua-energy-arbitrage
+```
+
+#### Крок 3.7. Відкрийте порт 5002 у фаєрволі:
+Для доступу до веб-інтерфейсу ззовні відкрийте порт `5002` на сервері (через утиліту `ufw` або у налаштуваннях безпеки (Security List / Ingress Rules) вашого провайдера Oracle Cloud чи AWS):
+```bash
+sudo ufw allow 5002/tcp
+```
+
+Тепер веб-інтерфейс буде доступний за адресою:
+`http://your_server_ip:5002`
+
 ---
 
 ## 📝 Щоденний робочий процес / Daily Workflow
