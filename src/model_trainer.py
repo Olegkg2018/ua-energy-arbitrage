@@ -57,6 +57,10 @@ def prepare_features(df):
     df['Solar_Gen'] = df['Solar_Gen'].interpolate(method='linear')
     df['Wind_Gen'] = df['Wind_Gen'].interpolate(method='linear')
     df['Nuclear_Gen'] = df['Nuclear_Gen'].interpolate(method='linear')
+    if 'Hydro_Gen' in df.columns:
+        df['Hydro_Gen'] = df['Hydro_Gen'].interpolate(method='linear')
+    if 'Thermal_Gen' in df.columns:
+        df['Thermal_Gen'] = df['Thermal_Gen'].interpolate(method='linear')
     
     df['Gas_Price'] = df['Gas_Price'].interpolate(method='linear').fillna(35.0)
     df['Market_Coeff'] = df['Market_Coeff'].fillna(1.0)

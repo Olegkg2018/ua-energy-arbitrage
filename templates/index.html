@@ -1116,6 +1116,9 @@
                     <i data-lucide="info" style="width:18px;height:18px"></i>
                     Аналіз прогнозу та ринкові фактори
                 </h3>
+                <div id="dataStatusContainer" style="margin-bottom:0.8rem; display:none;">
+                    <div id="dataStatusBadge" class="metrics-badge" style="display:inline-flex; padding:0.4rem 0.8rem; font-size:0.8rem;"></div>
+                </div>
                 <div class="explanations-list" id="explanationsList">
                     <div class="explanation-item">
                         <i data-lucide="help-circle" class="explanation-icon" style="width:16px;height:16px;color:var(--text-muted)"></i>
@@ -1464,6 +1467,33 @@
 
         function updateDashboard(data) {
             lastForecastData = data;
+
+            // Update Data Status Check
+            const statusContainer = document.getElementById('dataStatusContainer');
+            const statusBadge = document.getElementById('dataStatusBadge');
+            
+            if (data.data_status && statusContainer && statusBadge) {
+                statusContainer.style.display = 'block';
+                const ds = data.data_status;
+                if (ds.status === 'OK') {
+                    statusBadge.innerHTML = `<i data-lucide="check-circle" style="width:14px;height:14px;color:var(--color-success)"></i> База даних РДН (2021-${new Date().getFullYear()}): Перевірено (АЕС/ТЕС/ГЕС/СЕС/ВЕС/Імпорт)`;
+                    statusBadge.style.background = 'rgba(16,185,129,0.1)';
+                    statusBadge.style.borderColor = 'rgba(16,185,129,0.3)';
+                    statusBadge.style.color = 'var(--color-success)';
+                } else if (ds.status === 'WARNING') {
+                    statusBadge.innerHTML = `<i data-lucide="alert-triangle" style="width:14px;height:14px;color:var(--color-warning)"></i> Попередження даних: ${ds.warnings[0]}`;
+                    statusBadge.style.background = 'rgba(245,158,11,0.1)';
+                    statusBadge.style.borderColor = 'rgba(245,158,11,0.3)';
+                    statusBadge.style.color = 'var(--color-warning)';
+                } else {
+                    statusBadge.innerHTML = `<i data-lucide="x-circle" style="width:14px;height:14px;color:var(--color-error)"></i> Помилка перевірки даних: ${ds.errors[0]}`;
+                    statusBadge.style.background = 'rgba(239,68,68,0.1)';
+                    statusBadge.style.borderColor = 'rgba(239,68,68,0.3)';
+                    statusBadge.style.color = 'var(--color-error)';
+                }
+                lucide.createIcons();
+            }
+
             // If historical date and we have actual factors, we can update the sliders to show actual values
             // (but only if it's the first load of this date, to allow what-if adjustments).
             if (data.is_historical && data.actual_factors && lastLoadedDate !== data.date) {

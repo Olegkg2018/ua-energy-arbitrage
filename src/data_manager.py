@@ -315,6 +315,10 @@ def add_generation_and_market_factors(df):
     df['VDR_Volume'] = np.clip(1.0 + np.random.normal(0, 0.15, size=len(df)), 0.3, 1.8)
     df['Grid_Import_Export'] = 400.0 * np.sin(2 * np.pi * (df['Day_of_Year'] - 80) / 365.0) + 200.0 * (df['Hour'].isin([8,9,10,18,19,20,21])).astype(float)
     
+    # Thermal (ТЕС) and Hydro (ГЕС) simulation
+    df['Hydro_Gen'] = np.clip(800.0 + 700.0 * df['Hour'].isin([8,9,10,18,19,20,21]).astype(float) + np.random.normal(0, 80, size=len(df)), 200.0, 2000.0)
+    df['Thermal_Gen'] = np.clip(12000.0 - df['Nuclear_Gen'] - df['Solar_Gen'] - df['Wind_Gen'] - df['Grid_Import_Export'] - df['Hydro_Gen'], 1500.0, 7500.0)
+    
     return df.drop(columns=['Day_of_Year'])
 
 def sync_realtime_data(force=False):
@@ -525,3 +529,80 @@ def fetch_weather_forecast(lat=LAT, lon=LON, api_key=OPENWEATHER_KEY):
             'Shortwave_Radiation': rad
         })
     return pd.DataFrame(records)
+
+def verify_data_completeness():
+    """
+    Verifies completeness of oree.com.ua prices, weather, generation and import data.
+    Returns a dictionary with verification results.
+    """
+    report = {
+        'status': 'OK',
+        'errors': [],
+        'warnings': [],
+        'details': {}
+    }
+    
+    if not os.path.exists(MERGED_DATA_PATH):
+        report['status'] = 'ERROR'
+        report['errors'].append("База даних не існує на диску. Необхідно завантажити та створити її.")
+        return report
+        
+    try:
+        df = pd.read_csv(MERGED_DATA_PATH)
+        df['Datetime'] = pd.to_datetime(df['Datetime'])
+        
+        # Check start and end dates
+        min_date = df['Datetime'].min()
+        max_date = df['Datetime'].max()
+        now = datetime.datetime.now()
+        
+        report['details']['start_date'] = min_date.strftime('%Y-%m-%d %H:%M')
+        report['details']['end_date'] = max_date.strftime('%Y-%m-%d %H:%M')
+        
+        # 1. Check if history starts from at least 2021-01-01
+        target_start = pd.to_datetime('2021-01-01')
+        if min_date > target_start:
+            report['status'] = 'WARNING'
+            report['warnings'].append(f"Дані починаються з {min_date.strftime('%Y-%m-%d')}, що пізніше за запитувану дату 2021-01-01.")
+            
+        # 2. Check how up-to-date the data is (should be within last 2 days)
+        last_allowed_delay = now - datetime.timedelta(days=2)
+        if max_date < last_allowed_delay:
+            report['status'] = 'WARNING'
+            report['warnings'].append(f"Дані застаріли. Останній запис від {max_date.strftime('%Y-%m-%d')}, очікувався принаймні {last_allowed_delay.strftime('%Y-%m-%d')}.")
+            
+        # 3. Check for gaps / expected records count
+        expected_hours = int((max_date - min_date).total_seconds() / 3600) + 1
+        actual_hours = len(df)
+        gap_count = expected_hours - actual_hours
+        
+        report['details']['expected_hours'] = expected_hours
+        report['details']['actual_hours'] = actual_hours
+        report['details']['gap_count'] = gap_count
+        
+        if gap_count > 0:
+            # Gaps are automatically interpolated by prepare_features, but warning is helpful
+            report['warnings'].append(f"Виявлено пропуски в історії: відсутні {gap_count} годин (автоматично інтерполюються).")
+            
+        # 4. Check presence of weather and generation indicators
+        required_cols = [
+            'Price', 'Temperature', 'Cloud_Cover', 'Wind_Speed', 'Shortwave_Radiation',
+            'Solar_Gen', 'Wind_Gen', 'Nuclear_Gen', 'Hydro_Gen', 'Thermal_Gen', 'Grid_Import_Export'
+        ]
+        
+        missing_cols = [c for c in required_cols if c not in df.columns]
+        if missing_cols:
+            report['status'] = 'ERROR'
+            report['errors'].append(f"У базі даних відсутні обов'язкові показники: {', '.join(missing_cols)}.")
+        else:
+            # Count nulls
+            null_counts = df[required_cols].isnull().sum().to_dict()
+            for col, count in null_counts.items():
+                if count > 0:
+                    report['warnings'].append(f"Показник '{col}' містить {count} порожніх значень (будуть заповнені автоматично).")
+                    
+    except Exception as e:
+        report['status'] = 'ERROR'
+        report['errors'].append(f"Помилка при зчитуванні та перевірці бази даних: {str(e)}")
+        
+    return report

@@ -99,6 +99,9 @@ def forecast():
         df_hist = pd.read_csv(dm.MERGED_DATA_PATH)
         df_hist['Datetime'] = pd.to_datetime(df_hist['Datetime'])
         
+        # Verify database completeness
+        data_status = dm.verify_data_completeness()
+        
         # Find if we have actual data for the target date
         day_mask = df_hist['Datetime'].dt.date == target_date
         df_day = df_hist[day_mask].sort_values('Datetime')
@@ -220,6 +223,7 @@ def forecast():
             'date': target_date_str,
             'is_historical': is_historical,
             'actual_factors': actual_factors,
+            'data_status': data_status,
             'weather': {
                 'hours': list(range(24)),
                 'temp': weather_forecast['Temperature'].tolist(),
