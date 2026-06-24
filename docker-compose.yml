@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  ua-energy-arbitrage:
+    build: .
+    container_name: ua-energy-arbitrage
+    ports:
+      - "5002:5000"
+    env_file:
+      - .env
+    restart: always

@@ -81,6 +81,29 @@ docker run -d -p 5002:5000 --name ua-energy-arbitrage ua-energy-arbitrage
 docker run -d -p 5002:5000 --env-file .env --name ua-energy-arbitrage ua-energy-arbitrage
 ```
 
+#### 2.3. Як зупинити контейнер (запущений через `docker run`):
+Оскільки контейнер запущено безпосередньо через `docker run`, команда `docker compose down` для нього **не спрацює**. Щоб зупинити та видалити його:
+```bash
+docker stop ua-energy-arbitrage
+docker rm ua-energy-arbitrage
+```
+Або в одну команду (зупинити та примусово видалити):
+```bash
+docker rm -f ua-energy-arbitrage
+```
+
+#### 2.4. Альтернативний запуск через Docker Compose (рекомендовано):
+Для простішого керування контейнером у репозиторій додано файл `docker-compose.yml`.
+
+**Запуск у фоновому режимі**:
+```bash
+docker compose up -d
+```
+**Зупинка та видалення контейнера** (тепер ця команда працюватиме):
+```bash
+docker compose down
+```
+
 ### 3. Розгортання на зовнішньому сервері (ARM64 / VPS) / Deployment on a Remote ARM64 Server
 Якщо ви використовуєте хмарний сервер на базі ARM64 (наприклад, Oracle Cloud ARM, AWS Graviton, Raspberry Pi тощо), ви можете легко розгорнути цей комплекс. Базовий образ `python:3.10-slim` та бібліотеки (`pandas`, `numpy`, `xgboost`, `scikit-learn`, `pulp`) мають офіційні попередньо скомпільовані версії (wheels) для архітектури `aarch64` (ARM64).
 
