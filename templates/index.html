@@ -1305,12 +1305,22 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label>Початковий SoC (%)</label>
+                        <input type="number" class="form-control" id="initSoc" value="20">
+                    </div>
+                    <div class="form-group">
                         <label>Циклів на добу</label>
                         <input type="number" class="form-control" id="maxCycles" step="0.1" value="1.5">
                     </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label>Деградація UAH/кВт-год</label>
                         <input type="number" class="form-control" id="degCost" step="0.1" value="1.2">
+                    </div>
+                    <div class="form-group">
+                        <!-- Spacer to balance grid -->
                     </div>
                 </div>
             </div>
@@ -1503,6 +1513,10 @@
                             <i data-lucide="table" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
                             Погодинна відомість заряду та розряду АКБ
                         </div>
+                        <button class="btn" onclick="balanceScheduleBMS()" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3); color:var(--color-success); margin-right: 0.5rem;">
+                            <i data-lucide="shield-check" style="width:14px;height:14px;"></i>
+                            Авто-баланс BMS
+                        </button>
                         <button class="btn" onclick="resetToOptimalSchedule()" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); color:var(--color-warning); margin-right: 0.5rem;">
                             <i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i>
                             Скинути до оптимуму
@@ -2074,7 +2088,7 @@
                 max_discharge_power: document.getElementById('batPower').value,
                 charge_efficiency: document.getElementById('effCharge').value,
                 discharge_efficiency: document.getElementById('effDischarge').value,
-                initial_soc: 20.0, // starting point
+                initial_soc: document.getElementById('initSoc').value || 20.0,
                 min_soc: document.getElementById('minSoc').value,
                 max_soc: document.getElementById('maxSoc').value,
                 max_cycles_per_day: document.getElementById('maxCycles').value,
@@ -2368,7 +2382,7 @@
                         },
                         {
                             label: 'Рівень заряду SoC (кВт-год)',
-                            data: optRes.soc,
+                            data: optRes.soc.slice(1),
                             type: 'line',
                             borderColor: '#10b981',
                             backgroundColor: 'rgba(16, 185, 129, 0.05)',
@@ -2754,30 +2768,31 @@
             recalculateManualSchedule();
         }
 
-        // Mathematical recalculation of manual overrides
-        function recalculateManualSchedule() {
+        // Explicitly trigger BMS auto-balancing on the current schedule
+        function balanceScheduleBMS() {
             if (!activeOptimizationResult || !lastForecastData) return;
             
             const batCapacity = parseFloat(document.getElementById('batCapacity').value) || 1000;
             const effCharge = (parseFloat(document.getElementById('effCharge').value) || 95) / 100;
             const effDischarge = (parseFloat(document.getElementById('effDischarge').value) || 95) / 100;
-            const degCost = parseFloat(document.getElementById('degCost').value) || 1.2;
             
             const minSocPct = parseFloat(document.getElementById('minSoc').value) || 10;
             const maxSocPct = parseFloat(document.getElementById('maxSoc').value) || 90;
             const minSocKwh = (minSocPct / 100) * batCapacity;
             const maxSocKwh = (maxSocPct / 100) * batCapacity;
             
-            // --- AUTOMATIC BMS BALANCE & SAFETY CONTROLS ---
-            const initialSocKwh = 0.20 * batCapacity;
+            const initSocPct = parseFloat(document.getElementById('initSoc').value) || 20;
+            const initialSocKwh = (initSocPct / 100) * batCapacity;
+            
+            addSystemLog('BMS', 'Запуск примусового авто-балансування...', 'warning');
+            
             let tempSoc = initialSocKwh;
             
-            // 1. Forward Pass: Ensure minSoc and maxSoc limits are respected at every hour
+            // 1. Forward Pass: mutually exclusive and clamp physical constraints
             for (let t = 0; t < 24; t++) {
                 let pCharge = activeOptimizationResult.charge[t];
                 let pDischarge = activeOptimizationResult.discharge[t];
                 
-                // Charge and discharge cannot occur simultaneously
                 if (pCharge > 0.01 && pDischarge > 0.01) {
                     if (pCharge >= pDischarge) {
                         pCharge -= pDischarge;
@@ -2790,7 +2805,6 @@
                     activeOptimizationResult.discharge[t] = pDischarge;
                 }
                 
-                // Prevent discharge from dropping below minSoc
                 if (pDischarge > 0.01) {
                     let maxAllowedDischarge = (tempSoc + pCharge * effCharge - minSocKwh) * effDischarge;
                     maxAllowedDischarge = Math.max(0, maxAllowedDischarge);
@@ -2801,10 +2815,8 @@
                     }
                 }
                 
-                // Estimate next SoC
                 let estNextSoc = tempSoc + pCharge * effCharge - pDischarge / effDischarge;
                 
-                // Prevent charge from exceeding maxSoc
                 if (estNextSoc > maxSocKwh + 0.1) {
                     let maxAllowedCharge = (maxSocKwh + pDischarge / effDischarge - tempSoc) / effCharge;
                     maxAllowedCharge = Math.max(0, maxAllowedCharge);
@@ -2819,10 +2831,9 @@
                 tempSoc = estNextSoc;
             }
             
-            // 2. Backward Pass: Balance energy back to initial SoC (20%)
+            // 2. Backward Pass: restore balance to target initial SoC
             let finalDeficit = initialSocKwh - tempSoc;
             if (finalDeficit > 0.1) {
-                // Deficit: reduce discharging to restore SoC balance
                 for (let t = 23; t >= 0 && finalDeficit > 0.1; t--) {
                     let pDischarge = activeOptimizationResult.discharge[t];
                     if (pDischarge > 0.01) {
@@ -2830,17 +2841,16 @@
                         if (maxSoCSaved <= finalDeficit + 0.01) {
                             activeOptimizationResult.discharge[t] = 0;
                             finalDeficit -= maxSoCSaved;
-                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 розряд вимкнено для повернення до початкового SoC`, 'info');
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 розряд вимкнено`, 'info');
                         } else {
                             const reductionKw = finalDeficit * effDischarge;
                             activeOptimizationResult.discharge[t] -= reductionKw;
                             finalDeficit = 0;
-                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 розряд зменшено на ${reductionKw.toFixed(0)} кВт для повернення до початкового SoC`, 'info');
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 розряд зменшено на ${reductionKw.toFixed(0)} кВт`, 'info');
                         }
                     }
                 }
             } else if (finalDeficit < -0.1) {
-                // Surplus: reduce charging to avoid wasting energy and money
                 let finalSurplus = -finalDeficit;
                 for (let t = 23; t >= 0 && finalSurplus > 0.1; t--) {
                     let pCharge = activeOptimizationResult.charge[t];
@@ -2849,17 +2859,34 @@
                         if (maxSoCSaved <= finalSurplus + 0.01) {
                             activeOptimizationResult.charge[t] = 0;
                             finalSurplus -= maxSoCSaved;
-                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 заряд вимкнено для повернення до початкового SoC`, 'info');
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 заряд вимкнено`, 'info');
                         } else {
                             const reductionKw = finalSurplus / effCharge;
                             activeOptimizationResult.charge[t] -= reductionKw;
                             finalSurplus = 0;
-                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 заряд зменшено на ${reductionKw.toFixed(0)} кВт для повернення до початкового SoC`, 'info');
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 заряд зменшено на ${reductionKw.toFixed(0)} кВт`, 'info');
                         }
                     }
                 }
             }
-            // ------------------------------------------------
+            
+            addSystemLog('BMS', 'Примусове авто-балансування завершено.', 'success');
+            recalculateManualSchedule();
+        }
+
+        // Mathematical recalculation of manual overrides (Manual Freedom Edition)
+        function recalculateManualSchedule() {
+            if (!activeOptimizationResult || !lastForecastData) return;
+            
+            const batCapacity = parseFloat(document.getElementById('batCapacity').value) || 1000;
+            const effCharge = (parseFloat(document.getElementById('effCharge').value) || 95) / 100;
+            const effDischarge = (parseFloat(document.getElementById('effDischarge').value) || 95) / 100;
+            const degCost = parseFloat(document.getElementById('degCost').value) || 1.2;
+            
+            const minSocPct = parseFloat(document.getElementById('minSoc').value) || 10;
+            const maxSocPct = parseFloat(document.getElementById('maxSoc').value) || 90;
+            const minSocKwh = (minSocPct / 100) * batCapacity;
+            const maxSocKwh = (maxSocPct / 100) * batCapacity;
             
             const tariffTrans = (parseFloat(document.getElementById('tariffTrans').value) || 528.57) / 1000;
             const tariffDist = (parseFloat(document.getElementById('tariffDist').value) || 1500.0) / 1000;
@@ -2872,7 +2899,10 @@
             const isHist = lastForecastData.is_historical && lastForecastData.actual_optimization;
             const basePrices = isHist ? (lastForecastData.forecast.actual || predictedPrices) : predictedPrices;
             
-            let currentSoc = 0.20 * batCapacity;
+            const initSocPct = parseFloat(document.getElementById('initSoc').value) || 20;
+            const initialSocKwh = (initSocPct / 100) * batCapacity;
+            
+            let currentSoc = initialSocKwh;
             let socArray = [currentSoc];
             let totalCost = 0;
             let totalRevenue = 0;
@@ -2954,6 +2984,15 @@
             document.getElementById('kpiChargeCost').textContent = activeOptimizationResult.cost_charging_uah.toFixed(0) + ' грн';
             document.getElementById('kpiDischargeRevenue').textContent = activeOptimizationResult.revenue_discharging_uah.toFixed(0) + ' грн';
             document.getElementById('kpiCycles').textContent = activeOptimizationResult.cycles_used.toFixed(2);
+            
+            // Update the SoC Badge dynamically with start and end SoC levels
+            const socBadge = document.getElementById('socBadge');
+            if (socBadge) {
+                const startPct = initSocPct;
+                const endPct = ((socArray[24] / batCapacity) * 100).toFixed(0);
+                socBadge.innerHTML = `<i data-lucide="battery" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></i> Стан заряду (SoC): Початковий ${startPct}% ➔ Кінцевий ${endPct}%`;
+                lucide.createIcons();
+            }
             
             // Re-render plots and tables
             renderPriceChart(lastForecastData);
