@@ -1438,7 +1438,7 @@
                             Математичний графік заряду/розряду (PuLP Solver)
                             <span class="text-muted hide-mobile" style="font-size:0.75rem; margin-left:1.5rem; display:inline-flex; align-items:center; gap:0.3rem; font-weight:normal;">
                                 <i data-lucide="info" style="width:12px;height:12px;color:var(--accent-cyan)"></i>
-                                Затисніть Shift та тягніть стовпчик горизонтально для перенесення години; або вертикально для зміни потужності
+                                Тягніть стовпчик горизонтально для перенесення години; або вертикально для зміни потужності
                             </span>
                         </div>
                         <div id="socBadge" class="metrics-badge" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--color-success)">
@@ -2413,16 +2413,43 @@
                             },
                             onDragEnd: function(e, datasetIndex, index, value) {
                                 e.target.style.cursor = 'default';
-                                // Identify which hour column the mouse was released on
+                                
+                                // Identify which hour column the mouse/touch was released on
                                 let targetHour = index;
-                                const isShift = e && e.shiftKey;
-                                if (batteryChart && e && isShift) {
-                                    const activeElements = batteryChart.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
+                                if (batteryChart && e) {
+                                    const rect = batteryChart.canvas.getBoundingClientRect();
+                                    
+                                    // Handle touch and mouse events safely
+                                    let clientX = 0;
+                                    let clientY = 0;
+                                    if (e.clientX !== undefined) {
+                                        clientX = e.clientX;
+                                        clientY = e.clientY;
+                                    } else if (e.changedTouches && e.changedTouches[0]) {
+                                        clientX = e.changedTouches[0].clientX;
+                                        clientY = e.changedTouches[0].clientY;
+                                    } else if (e.touches && e.touches[0]) {
+                                        clientX = e.touches[0].clientX;
+                                        clientY = e.touches[0].clientY;
+                                    }
+                                    
+                                    // Translate to canvas-relative coordinates
+                                    const canvasX = clientX - rect.left;
+                                    const canvasY = clientY - rect.top;
+                                    
+                                    const fakeEvent = {
+                                        x: canvasX,
+                                        y: canvasY,
+                                        type: 'mouseup',
+                                        native: e
+                                    };
+                                    
+                                    const activeElements = batteryChart.getElementsAtEventForMode(fakeEvent, 'index', { intersect: false }, true);
                                     if (activeElements.length > 0) {
                                         targetHour = activeElements[0].index;
                                     }
                                 }
-                                onChartDragOrMoveEnd(index, targetHour, value, isShift);
+                                onChartDragOrMoveEnd(index, targetHour, value);
                             }
                         },
                         legend: {
@@ -2631,7 +2658,7 @@
         }
 
         // Chart Drag-and-Drop Power / Hour Adjustment Handler
-        function onChartDragOrMoveEnd(sourceHour, targetHour, value, isShift) {
+        function onChartDragOrMoveEnd(sourceHour, targetHour, value) {
             if (!activeOptimizationResult) return;
             
             // 1. Restore complete snapshot to undo any accidental adjacent bar modifications during dragging
@@ -2645,7 +2672,7 @@
             // 2. Identify the true source hour where the drag originally started
             const trueSourceHour = dragSourceHour !== null ? dragSourceHour : sourceHour;
             
-            if (!isShift || trueSourceHour === targetHour) {
+            if (trueSourceHour === targetHour) {
                 // Vertical resizing: apply the new height (power)
                 applyPowerToHour(trueSourceHour, power);
                 if (power > 0.01) {
@@ -2663,7 +2690,7 @@
                 const targetPower = dragOriginalMode === 'charge' ? dragOriginalPower : -dragOriginalPower;
                 applyPowerToHour(targetHour, targetPower);
                 
-                const modeStr = dragOriginalMode.toUpperCase();
+                const modeStr = dragOriginalMode === 'charge' ? 'ЗАРЯД' : (dragOriginalMode === 'discharge' ? 'РОЗРЯД' : 'ОЧІКУВАННЯ');
                 addSystemLog('UI', `Переміщено: год ${trueSourceHour}:00 перенесено на год ${targetHour}:00 (${modeStr} ${dragOriginalPower.toFixed(0)} кВт)`, 'info');
             }
             
