@@ -2768,6 +2768,99 @@
             const minSocKwh = (minSocPct / 100) * batCapacity;
             const maxSocKwh = (maxSocPct / 100) * batCapacity;
             
+            // --- AUTOMATIC BMS BALANCE & SAFETY CONTROLS ---
+            const initialSocKwh = 0.20 * batCapacity;
+            let tempSoc = initialSocKwh;
+            
+            // 1. Forward Pass: Ensure minSoc and maxSoc limits are respected at every hour
+            for (let t = 0; t < 24; t++) {
+                let pCharge = activeOptimizationResult.charge[t];
+                let pDischarge = activeOptimizationResult.discharge[t];
+                
+                // Charge and discharge cannot occur simultaneously
+                if (pCharge > 0.01 && pDischarge > 0.01) {
+                    if (pCharge >= pDischarge) {
+                        pCharge -= pDischarge;
+                        pDischarge = 0;
+                    } else {
+                        pDischarge -= pCharge;
+                        pCharge = 0;
+                    }
+                    activeOptimizationResult.charge[t] = pCharge;
+                    activeOptimizationResult.discharge[t] = pDischarge;
+                }
+                
+                // Prevent discharge from dropping below minSoc
+                if (pDischarge > 0.01) {
+                    let maxAllowedDischarge = (tempSoc + pCharge * effCharge - minSocKwh) * effDischarge;
+                    maxAllowedDischarge = Math.max(0, maxAllowedDischarge);
+                    if (pDischarge > maxAllowedDischarge + 0.1) {
+                        pDischarge = maxAllowedDischarge;
+                        activeOptimizationResult.discharge[t] = pDischarge;
+                        addSystemLog('BMS', `Обмеження розряду: год ${t}:00 знижено до ${pDischarge.toFixed(0)} кВт для збереження мін. SoC`, 'warning');
+                    }
+                }
+                
+                // Estimate next SoC
+                let estNextSoc = tempSoc + pCharge * effCharge - pDischarge / effDischarge;
+                
+                // Prevent charge from exceeding maxSoc
+                if (estNextSoc > maxSocKwh + 0.1) {
+                    let maxAllowedCharge = (maxSocKwh + pDischarge / effDischarge - tempSoc) / effCharge;
+                    maxAllowedCharge = Math.max(0, maxAllowedCharge);
+                    if (pCharge > maxAllowedCharge + 0.1) {
+                        pCharge = maxAllowedCharge;
+                        activeOptimizationResult.charge[t] = pCharge;
+                        addSystemLog('BMS', `Обмеження заряду: год ${t}:00 знижено до ${pCharge.toFixed(0)} кВт для збереження макс. SoC`, 'warning');
+                    }
+                    estNextSoc = tempSoc + pCharge * effCharge - pDischarge / effDischarge;
+                }
+                
+                tempSoc = estNextSoc;
+            }
+            
+            // 2. Backward Pass: Balance energy back to initial SoC (20%)
+            let finalDeficit = initialSocKwh - tempSoc;
+            if (finalDeficit > 0.1) {
+                // Deficit: reduce discharging to restore SoC balance
+                for (let t = 23; t >= 0 && finalDeficit > 0.1; t--) {
+                    let pDischarge = activeOptimizationResult.discharge[t];
+                    if (pDischarge > 0.01) {
+                        const maxSoCSaved = pDischarge / effDischarge;
+                        if (maxSoCSaved <= finalDeficit + 0.01) {
+                            activeOptimizationResult.discharge[t] = 0;
+                            finalDeficit -= maxSoCSaved;
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 розряд вимкнено для повернення до початкового SoC`, 'info');
+                        } else {
+                            const reductionKw = finalDeficit * effDischarge;
+                            activeOptimizationResult.discharge[t] -= reductionKw;
+                            finalDeficit = 0;
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 розряд зменшено на ${reductionKw.toFixed(0)} кВт для повернення до початкового SoC`, 'info');
+                        }
+                    }
+                }
+            } else if (finalDeficit < -0.1) {
+                // Surplus: reduce charging to avoid wasting energy and money
+                let finalSurplus = -finalDeficit;
+                for (let t = 23; t >= 0 && finalSurplus > 0.1; t--) {
+                    let pCharge = activeOptimizationResult.charge[t];
+                    if (pCharge > 0.01) {
+                        const maxSoCSaved = pCharge * effCharge;
+                        if (maxSoCSaved <= finalSurplus + 0.01) {
+                            activeOptimizationResult.charge[t] = 0;
+                            finalSurplus -= maxSoCSaved;
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 заряд вимкнено для повернення до початкового SoC`, 'info');
+                        } else {
+                            const reductionKw = finalSurplus / effCharge;
+                            activeOptimizationResult.charge[t] -= reductionKw;
+                            finalSurplus = 0;
+                            addSystemLog('BMS', `Авто-баланс: год ${t}:00 заряд зменшено на ${reductionKw.toFixed(0)} кВт для повернення до початкового SoC`, 'info');
+                        }
+                    }
+                }
+            }
+            // ------------------------------------------------
+            
             const tariffTrans = (parseFloat(document.getElementById('tariffTrans').value) || 528.57) / 1000;
             const tariffDist = (parseFloat(document.getElementById('tariffDist').value) || 1500.0) / 1000;
             const tariffDisp = (parseFloat(document.getElementById('tariffDisp').value) || 104.57) / 1000;
