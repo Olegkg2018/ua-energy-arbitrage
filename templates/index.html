@@ -2386,7 +2386,15 @@
                             },
                             onDragEnd: function(e, datasetIndex, index, value) {
                                 e.target.style.cursor = 'default';
-                                onChartDragEnd(index, value);
+                                // Identify which hour column the mouse was released on
+                                let targetHour = index;
+                                if (batteryChart && e) {
+                                    const activeElements = batteryChart.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
+                                    if (activeElements.length > 0) {
+                                        targetHour = activeElements[0].index;
+                                    }
+                                }
+                                onChartDragOrMoveEnd(index, targetHour, value);
                             }
                         },
                         legend: {
@@ -2594,28 +2602,45 @@
             recalculateManualSchedule();
         }
 
-        // Chart Drag-and-Drop Power Adjustment Handler
-        function onChartDragEnd(hour, value) {
+        // Chart Drag-and-Drop Power / Hour Adjustment Handler
+        function onChartDragOrMoveEnd(sourceHour, targetHour, value) {
             if (!activeOptimizationResult) return;
             
             const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
             let power = parseFloat(value) || 0;
             power = Math.max(-maxPower, Math.min(power, maxPower));
             
+            if (sourceHour === targetHour) {
+                // Vertical resizing
+                applyPowerToHour(sourceHour, power);
+                if (power > 0.01) {
+                    addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим ЗАРЯДУ (${power.toFixed(0)} кВт)`, 'warning');
+                } else if (power < -0.01) {
+                    addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим РОЗРЯДУ (${(-power).toFixed(0)} кВт)`, 'warning');
+                } else {
+                    addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
+                }
+            } else {
+                // Horizontal shift-dragging column to another hour
+                applyPowerToHour(sourceHour, 0); // clear original hour
+                applyPowerToHour(targetHour, power); // apply power to target hour
+                const modeStr = power > 0.01 ? 'ЗАРЯД' : (power < -0.01 ? 'РОЗРЯД' : 'ОЧІКУВАННЯ');
+                addSystemLog('UI', `Переміщено: год ${sourceHour}:00 перенесено на год ${targetHour}:00 (${modeStr})`, 'info');
+            }
+            recalculateManualSchedule();
+        }
+
+        function applyPowerToHour(hour, power) {
             if (power > 0.01) {
                 activeOptimizationResult.charge[hour] = power;
                 activeOptimizationResult.discharge[hour] = 0;
-                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим ЗАРЯДУ (${power.toFixed(0)} кВт)`, 'warning');
             } else if (power < -0.01) {
                 activeOptimizationResult.charge[hour] = 0;
                 activeOptimizationResult.discharge[hour] = -power;
-                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим РОЗРЯДУ (${(-power).toFixed(0)} кВт)`, 'warning');
             } else {
                 activeOptimizationResult.charge[hour] = 0;
                 activeOptimizationResult.discharge[hour] = 0;
-                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
             }
-            recalculateManualSchedule();
         }
 
         // Chart Click-to-Cycle Mode
