@@ -1997,6 +1997,9 @@
         let activeOptimizationResult = null;
         let dragOriginalPower = 0;
         let dragOriginalMode = 'standby';
+        let dragOriginalCharge = [];
+        let dragOriginalDischarge = [];
+        let dragSourceHour = null;
 
         // Fetch Metrics on Load
         function fetchMetrics() {
@@ -2389,6 +2392,10 @@
                                 
                                 // Store the original value and mode before drag changes them
                                 if (activeOptimizationResult) {
+                                    dragSourceHour = index;
+                                    dragOriginalCharge = [...activeOptimizationResult.charge];
+                                    dragOriginalDischarge = [...activeOptimizationResult.discharge];
+                                    
                                     if (activeOptimizationResult.charge[index] > 0.01) {
                                         dragOriginalMode = 'charge';
                                         dragOriginalPower = activeOptimizationResult.charge[index];
@@ -2627,30 +2634,37 @@
         function onChartDragOrMoveEnd(sourceHour, targetHour, value, isShift) {
             if (!activeOptimizationResult) return;
             
+            // 1. Restore complete snapshot to undo any accidental adjacent bar modifications during dragging
+            activeOptimizationResult.charge = [...dragOriginalCharge];
+            activeOptimizationResult.discharge = [...dragOriginalDischarge];
+            
             const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
             let power = parseFloat(value) || 0;
             power = Math.max(-maxPower, Math.min(power, maxPower));
             
-            if (!isShift || sourceHour === targetHour) {
+            // 2. Identify the true source hour where the drag originally started
+            const trueSourceHour = dragSourceHour !== null ? dragSourceHour : sourceHour;
+            
+            if (!isShift || trueSourceHour === targetHour) {
                 // Vertical resizing: apply the new height (power)
-                applyPowerToHour(sourceHour, power);
+                applyPowerToHour(trueSourceHour, power);
                 if (power > 0.01) {
-                    addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим ЗАРЯДУ (${power.toFixed(0)} кВт)`, 'warning');
+                    addSystemLog('UI', `Графік: год ${trueSourceHour}:00 переведено в режим ЗАРЯДУ (${power.toFixed(0)} кВт)`, 'warning');
                 } else if (power < -0.01) {
-                    addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим РОЗРЯДУ (${(-power).toFixed(0)} кВт)`, 'warning');
+                    addSystemLog('UI', `Графік: год ${trueSourceHour}:00 переведено в режим РОЗРЯДУ (${(-power).toFixed(0)} кВт)`, 'warning');
                 } else {
-                    addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
+                    addSystemLog('UI', `Графік: год ${trueSourceHour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
                 }
             } else {
                 // Horizontal shift-dragging column: preserve original height and mode!
-                applyPowerToHour(sourceHour, 0); // clear original hour
+                applyPowerToHour(trueSourceHour, 0); // clear original hour
                 
                 // Keep the original power level and mode, ignoring drag height
                 const targetPower = dragOriginalMode === 'charge' ? dragOriginalPower : -dragOriginalPower;
                 applyPowerToHour(targetHour, targetPower);
                 
                 const modeStr = dragOriginalMode.toUpperCase();
-                addSystemLog('UI', `Переміщено: год ${sourceHour}:00 перенесено на год ${targetHour}:00 (${modeStr} ${dragOriginalPower.toFixed(0)} кВт)`, 'info');
+                addSystemLog('UI', `Переміщено: год ${trueSourceHour}:00 перенесено на год ${targetHour}:00 (${modeStr} ${dragOriginalPower.toFixed(0)} кВт)`, 'info');
             }
             
             // Defer recalculation to avoid Chart.js plugin lifecycle errors
