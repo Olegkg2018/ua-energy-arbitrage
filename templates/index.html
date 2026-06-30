@@ -1498,6 +1498,10 @@
                             <i data-lucide="table" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
                             Погодинна відомість заряду та розряду АКБ
                         </div>
+                        <button class="btn" onclick="resetToOptimalSchedule()" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); color:var(--color-warning); margin-right: 0.5rem;">
+                            <i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i>
+                            Скинути до оптимуму
+                        </button>
                         <button class="btn" onclick="exportHourlyTable()" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.3); color:var(--accent-cyan);">
                             <i data-lucide="download" style="width:14px;height:14px;"></i>
                             Експорт в CSV
@@ -1985,6 +1989,7 @@
         // Chart References
         let priceChart = null;
         let batteryChart = null;
+        let activeOptimizationResult = null;
 
         // Fetch Metrics on Load
         function fetchMetrics() {
@@ -2144,7 +2149,8 @@
 
             // Determine which optimization results to use (actual or predicted)
             const isHist = data.is_historical && data.actual_optimization;
-            const optRes = isHist ? data.actual_optimization : data.optimization;
+            activeOptimizationResult = JSON.parse(JSON.stringify(isHist ? data.actual_optimization : data.optimization));
+            const optRes = activeOptimizationResult;
 
             // Update KPIs
             document.getElementById('kpiNetProfit').textContent = optRes.net_profit_uah.toFixed(0) + ' грн';
@@ -2238,8 +2244,8 @@
             const predictedPrices = modelType === 'xgboost' ? data.forecast.xgboost : data.forecast.mlp;
             
             // Determine which buy prices to show (actual or predicted)
-            const isHist = data.is_historical && data.actual_optimization;
-            const buyPrices = isHist ? data.actual_optimization.hourly_buy_prices : data.optimization.hourly_buy_prices;
+            const optRes = activeOptimizationResult || (data.is_historical && data.actual_optimization ? data.actual_optimization : data.optimization);
+            const buyPrices = optRes.hourly_buy_prices;
             
             const datasets = [
                 {
@@ -2283,6 +2289,12 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const elementIndex = elements[0].index;
+                            cycleChartHourMode(elementIndex);
+                        }
+                    },
                     scales: {
                         y: {
                             grid: { color: gridColor },
@@ -2317,8 +2329,7 @@
             const ticksColor = isLight ? '#475569' : '#9ca3af';
             const legendColor = isLight ? '#0f172a' : '#f3f4f6';
 
-            const isHist = data.is_historical && data.actual_optimization;
-            const optRes = isHist ? data.actual_optimization : data.optimization;
+            const optRes = activeOptimizationResult || (data.is_historical && data.actual_optimization ? data.actual_optimization : data.optimization);
             
             // Build charge/discharge array where charge is positive, discharge is negative
             const powerSchedule = [];
@@ -2531,18 +2542,230 @@
             runForecastAndOptimization();
         }
 
-        // Render Hourly Schedule Detail Table
+        // Interactive table mode change
+        function onTableModeChange(hour, mode) {
+            if (!activeOptimizationResult) return;
+            const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
+            
+            if (mode === 'charge') {
+                activeOptimizationResult.charge[hour] = maxPower;
+                activeOptimizationResult.discharge[hour] = 0;
+            } else if (mode === 'discharge') {
+                activeOptimizationResult.charge[hour] = 0;
+                activeOptimizationResult.discharge[hour] = maxPower;
+            } else {
+                activeOptimizationResult.charge[hour] = 0;
+                activeOptimizationResult.discharge[hour] = 0;
+            }
+            recalculateManualSchedule();
+        }
+
+        // Interactive table power change
+        function onTablePowerChange(hour, val) {
+            if (!activeOptimizationResult) return;
+            let power = parseFloat(val) || 0;
+            const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
+            power = Math.max(0, Math.min(power, maxPower));
+            
+            if (activeOptimizationResult.charge[hour] > 0) {
+                activeOptimizationResult.charge[hour] = power;
+            } else if (activeOptimizationResult.discharge[hour] > 0) {
+                activeOptimizationResult.discharge[hour] = power;
+            }
+            recalculateManualSchedule();
+        }
+
+        // Chart Click-to-Cycle Mode
+        function cycleChartHourMode(hour) {
+            if (!activeOptimizationResult) return;
+            const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
+            const isCharging = activeOptimizationResult.charge[hour] > 0.01;
+            const isDischarging = activeOptimizationResult.discharge[hour] > 0.01;
+            
+            if (!isCharging && !isDischarging) {
+                // Standby -> Charge
+                activeOptimizationResult.charge[hour] = maxPower;
+                activeOptimizationResult.discharge[hour] = 0;
+                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим ЗАРЯДУ`, 'warning');
+            } else if (isCharging) {
+                // Charge -> Discharge
+                activeOptimizationResult.charge[hour] = 0;
+                activeOptimizationResult.discharge[hour] = maxPower;
+                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим РОЗРЯДУ`, 'warning');
+            } else {
+                // Discharge -> Standby
+                activeOptimizationResult.charge[hour] = 0;
+                activeOptimizationResult.discharge[hour] = 0;
+                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
+            }
+            recalculateManualSchedule();
+        }
+
+        // Reset overridden schedule back to optimal
+        function resetToOptimalSchedule() {
+            if (!lastForecastData) return;
+            addSystemLog('UI', 'Скинуто до оптимального розкладу PuLP Solver', 'info');
+            const isHist = lastForecastData.is_historical && lastForecastData.actual_optimization;
+            activeOptimizationResult = JSON.parse(JSON.stringify(isHist ? lastForecastData.actual_optimization : lastForecastData.optimization));
+            
+            // Reset KPI borders
+            const profitCard = document.getElementById('kpiNetProfit').closest('.kpi-card');
+            if (profitCard) {
+                profitCard.style.borderColor = '';
+                profitCard.style.boxShadow = '';
+            }
+            
+            recalculateManualSchedule();
+        }
+
+        // Mathematical recalculation of manual overrides
+        function recalculateManualSchedule() {
+            if (!activeOptimizationResult || !lastForecastData) return;
+            
+            const batCapacity = parseFloat(document.getElementById('batCapacity').value) || 1000;
+            const effCharge = (parseFloat(document.getElementById('effCharge').value) || 95) / 100;
+            const effDischarge = (parseFloat(document.getElementById('effDischarge').value) || 95) / 100;
+            const degCost = parseFloat(document.getElementById('degCost').value) || 1.2;
+            
+            const minSocPct = parseFloat(document.getElementById('minSoc').value) || 10;
+            const maxSocPct = parseFloat(document.getElementById('maxSoc').value) || 90;
+            const minSocKwh = (minSocPct / 100) * batCapacity;
+            const maxSocKwh = (maxSocPct / 100) * batCapacity;
+            
+            const tariffTrans = (parseFloat(document.getElementById('tariffTrans').value) || 528.57) / 1000;
+            const tariffDist = (parseFloat(document.getElementById('tariffDist').value) || 1500.0) / 1000;
+            const tariffDisp = (parseFloat(document.getElementById('tariffDisp').value) || 104.57) / 1000;
+            const tariffMargin = (parseFloat(document.getElementById('tariffMargin').value) || 100.0) / 1000;
+            const totalBuyTariff = tariffTrans + tariffDist + tariffDisp + tariffMargin;
+            
+            const modelType = document.getElementById('aiModel').value;
+            const predictedPrices = modelType === 'xgboost' ? lastForecastData.forecast.xgboost : lastForecastData.forecast.mlp;
+            const isHist = lastForecastData.is_historical && lastForecastData.actual_optimization;
+            const basePrices = isHist ? (lastForecastData.forecast.actual || predictedPrices) : predictedPrices;
+            
+            let currentSoc = 0.20 * batCapacity;
+            let socArray = [currentSoc];
+            let totalCost = 0;
+            let totalRevenue = 0;
+            let totalDegradation = 0;
+            
+            activeOptimizationResult.hourly_buy_prices = [];
+            activeOptimizationResult.hourly_sell_prices = [];
+            
+            for (let t = 0; t < 24; t++) {
+                const pCharge = activeOptimizationResult.charge[t];
+                const pDischarge = activeOptimizationResult.discharge[t];
+                
+                const pricePerKwh = basePrices[t] / 1000.0;
+                const buyPricePerKwh = pricePerKwh + totalBuyTariff;
+                
+                activeOptimizationResult.hourly_buy_prices.push(buyPricePerKwh * 1000.0);
+                activeOptimizationResult.hourly_sell_prices.push(pricePerKwh * 1000.0);
+                
+                if (pCharge > 0) {
+                    currentSoc = currentSoc + pCharge * effCharge;
+                    totalCost += pCharge * buyPricePerKwh;
+                } else if (pDischarge > 0) {
+                    currentSoc = currentSoc - (pDischarge / effDischarge);
+                    totalRevenue += pDischarge * pricePerKwh;
+                    totalDegradation += pDischarge * degCost;
+                }
+                socArray.push(currentSoc);
+            }
+            
+            activeOptimizationResult.soc = socArray;
+            activeOptimizationResult.net_profit_uah = totalRevenue - totalCost - totalDegradation;
+            activeOptimizationResult.cost_charging_uah = totalCost;
+            activeOptimizationResult.revenue_discharging_uah = totalRevenue;
+            activeOptimizationResult.degradation_cost_uah = totalDegradation;
+            activeOptimizationResult.cycles_used = activeOptimizationResult.discharge.reduce((a, b) => a + b, 0) / batCapacity;
+            
+            // Check violations
+            let hasViolation = false;
+            for (let t = 0; t <= 24; t++) {
+                if (socArray[t] < minSocKwh - 0.01 || socArray[t] > maxSocKwh + 0.01) {
+                    hasViolation = true;
+                    break;
+                }
+            }
+            
+            // Check if overridden compared to optimal solver
+            const solverRes = isHist ? lastForecastData.actual_optimization : lastForecastData.optimization;
+            let isOverridden = false;
+            for (let t = 0; t < 24; t++) {
+                if (Math.abs(activeOptimizationResult.charge[t] - solverRes.charge[t]) > 0.1 ||
+                    Math.abs(activeOptimizationResult.discharge[t] - solverRes.discharge[t]) > 0.1) {
+                    isOverridden = true;
+                    break;
+                }
+            }
+            
+            // Update KPIs
+            if (isOverridden) {
+                document.getElementById('kpiNetProfit').innerHTML = `
+                    ${activeOptimizationResult.net_profit_uah.toFixed(0)} грн
+                    <span class="manual-badge" style="display:block; font-size:0.65rem; font-weight:600; color:var(--color-warning); margin-top:0.2rem;">
+                        <i data-lucide="user" style="width:10px;height:10px;display:inline-block;vertical-align:middle;"></i> Ручне керування
+                    </span>
+                `;
+                const profitCard = document.getElementById('kpiNetProfit').closest('.kpi-card');
+                if (profitCard) {
+                    profitCard.style.borderColor = 'var(--color-warning)';
+                    profitCard.style.boxShadow = '0 0 10px rgba(217, 119, 6, 0.15)';
+                }
+            } else {
+                document.getElementById('kpiNetProfit').textContent = activeOptimizationResult.net_profit_uah.toFixed(0) + ' грн';
+                const profitCard = document.getElementById('kpiNetProfit').closest('.kpi-card');
+                if (profitCard) {
+                    profitCard.style.borderColor = '';
+                    profitCard.style.boxShadow = '';
+                }
+            }
+            
+            document.getElementById('kpiChargeCost').textContent = activeOptimizationResult.cost_charging_uah.toFixed(0) + ' грн';
+            document.getElementById('kpiDischargeRevenue').textContent = activeOptimizationResult.revenue_discharging_uah.toFixed(0) + ' грн';
+            document.getElementById('kpiCycles').textContent = activeOptimizationResult.cycles_used.toFixed(2);
+            
+            // Re-render plots and tables
+            renderPriceChart(lastForecastData);
+            renderBatteryScheduleChart(lastForecastData);
+            renderHourlyTable(lastForecastData);
+            
+            if (isUserTriggered()) {
+                if (hasViolation) {
+                    addSystemLog('SOLVER', 'Попередження: Ручний графік порушує технічні ліміти SoC батареї!', 'warning');
+                } else {
+                    addSystemLog('SOLVER', 'Перерахунок виконано. Новий прибуток: ' + activeOptimizationResult.net_profit_uah.toFixed(0) + ' грн', 'success');
+                }
+            }
+            lucide.createIcons();
+        }
+
+        // Helper to check if recalculation is from user action
+        let logSuppressor = false;
+        function isUserTriggered() {
+            if (logSuppressor) return false;
+            return true;
+        }
+
+        // Render Hourly Schedule Detail Table (Interactive Edition)
         function renderHourlyTable(data) {
             const tbody = document.getElementById('hourlyTableBody');
             if (!tbody) return;
             
-            const isHist = data.is_historical && data.actual_optimization;
-            const optRes = isHist ? data.actual_optimization : data.optimization;
+            logSuppressor = true; // suppress redundant solver logs during render
+            const optRes = activeOptimizationResult || (data.is_historical && data.actual_optimization ? data.actual_optimization : data.optimization);
             const modelType = document.getElementById('aiModel').value;
             const predictedPrices = modelType === 'xgboost' ? data.forecast.xgboost : data.forecast.mlp;
             
             const batCapacity = parseFloat(document.getElementById('batCapacity').value) || 1000;
+            const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
             const degCost = parseFloat(document.getElementById('degCost').value) || 1.2;
+            
+            const minSocPct = parseFloat(document.getElementById('minSoc').value) || 10;
+            const maxSocPct = parseFloat(document.getElementById('maxSoc').value) || 90;
+            const minSocKwh = (minSocPct / 100) * batCapacity;
+            const maxSocKwh = (maxSocPct / 100) * batCapacity;
             
             let html = '';
             for (let t = 0; t < 24; t++) {
@@ -2551,22 +2774,25 @@
                 const priceActual = (data.forecast.actual && data.forecast.actual[t]) ? data.forecast.actual[t].toFixed(0) : '-';
                 const priceBuyWithTariff = optRes.hourly_buy_prices[t] ? optRes.hourly_buy_prices[t].toFixed(0) : '-';
                 
-                let modeBadge = '<span class="badge-action standby">Очікування</span>';
+                let mode = 'standby';
                 let powerVal = 0;
                 let hourlyProfit = 0;
                 
                 if (optRes.charge[t] > 0.01) {
-                    modeBadge = '<span class="badge-action charge"><i data-lucide="download" style="width:12px;height:12px"></i>Заряд</span>';
+                    mode = 'charge';
                     powerVal = optRes.charge[t];
                     hourlyProfit = -(optRes.charge[t] * (optRes.hourly_buy_prices[t] / 1000.0));
                 } else if (optRes.discharge[t] > 0.01) {
-                    modeBadge = '<span class="badge-action discharge"><i data-lucide="upload" style="width:12px;height:12px"></i>Розряд</span>';
-                    powerVal = -optRes.discharge[t];
+                    mode = 'discharge';
+                    powerVal = optRes.discharge[t];
                     hourlyProfit = (optRes.discharge[t] * (optRes.hourly_sell_prices[t] / 1000.0)) - (optRes.discharge[t] * degCost);
                 }
                 
                 const endSocKwh = optRes.soc[t + 1];
                 const endSocPct = ((endSocKwh / batCapacity) * 100).toFixed(0);
+                
+                const isViolated = endSocKwh < minSocKwh - 0.01 || endSocKwh > maxSocKwh + 0.01;
+                const violationStyle = isViolated ? 'color: var(--color-error); font-weight: 700; background: rgba(220, 38, 38, 0.1);' : '';
                 
                 let profitStyle = '';
                 let profitPrefix = '';
@@ -2577,24 +2803,33 @@
                     profitStyle = 'color: var(--color-discharge);';
                 }
                 
-                const profitText = hourlyProfit !== 0 ? `${profitPrefix}${hourlyProfit.toFixed(0)} грн` : '0 грн';
+                const profitText = hourlyProfit !== 0 ? `${profitPrefix}${hourlyProfit.toFixed(0)}` : '0';
                 
                 html += `
-                    <tr>
+                    <tr style="${isViolated ? 'background: rgba(220, 38, 38, 0.02);' : ''}">
                         <td>${hourStr}</td>
                         <td>${priceForecast}</td>
                         <td>${priceActual}</td>
                         <td>${priceBuyWithTariff}</td>
-                        <td>${modeBadge}</td>
-                        <td>${powerVal !== 0 ? powerVal.toFixed(0) : '0'}</td>
-                        <td>${endSocKwh.toFixed(0)}</td>
-                        <td>${endSocPct}%</td>
-                        <td style="${profitStyle}">${profitText}</td>
+                        <td>
+                            <select class="form-control table-select" onchange="onTableModeChange(${t}, this.value)" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: var(--text-primary); border-radius: 6px;">
+                                <option value="standby" ${mode === 'standby' ? 'selected' : ''}>Очікування</option>
+                                <option value="charge" ${mode === 'charge' ? 'selected' : ''}>Заряд</option>
+                                <option value="discharge" ${mode === 'discharge' ? 'selected' : ''}>Розряд</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control table-input" value="${powerVal.toFixed(0)}" min="0" max="${maxPower}" onchange="onTablePowerChange(${t}, this.value)" style="width: 80px; padding: 0.25rem 0.5rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: var(--text-primary); border-radius: 6px; text-align: center;" ${mode === 'standby' ? 'disabled' : ''}>
+                        </td>
+                        <td style="${violationStyle}">${endSocKwh.toFixed(0)}</td>
+                        <td style="${violationStyle}">${endSocPct}%</td>
+                        <td style="${profitStyle}">${profitText} грн</td>
                     </tr>
                 `;
             }
             
             tbody.innerHTML = html;
+            logSuppressor = false;
             lucide.createIcons();
         }
 
