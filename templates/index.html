@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.4/dist/chartjs-plugin-dragdata.min.js"></script>
     
     <style>
         :root {
@@ -2372,13 +2373,39 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        dragData: {
+                            round: 0,
+                            showTooltip: true,
+                            onDragStart: function(e, datasetIndex, index, value) {
+                                // Only allow dragging the power schedule (dataset index 0)
+                                if (datasetIndex !== 0) return false;
+                            },
+                            onDrag: function(e, datasetIndex, index, value) {
+                                e.target.style.cursor = 'grabbing';
+                            },
+                            onDragEnd: function(e, datasetIndex, index, value) {
+                                e.target.style.cursor = 'default';
+                                onChartDragEnd(index, value);
+                            }
+                        },
+                        legend: {
+                            labels: { color: legendColor, font: { family: 'Inter' } }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
                     scales: {
                         y_power: {
                             type: 'linear',
                             position: 'left',
                             title: { display: true, text: 'Потужність АКБ (кВт)', color: ticksColor },
                             grid: { color: gridColor },
-                            ticks: { color: ticksColor }
+                            ticks: { color: ticksColor },
+                            min: -parseFloat(document.getElementById('batPower').value || 250),
+                            max: parseFloat(document.getElementById('batPower').value || 250)
                         },
                         y_soc: {
                             type: 'linear',
@@ -2392,15 +2419,7 @@
                             ticks: { color: ticksColor }
                         }
                     },
-                    plugins: {
-                        legend: {
-                            labels: { color: legendColor, font: { family: 'Inter' } }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    }
+
                 }
             });
         }
@@ -2571,6 +2590,30 @@
                 activeOptimizationResult.charge[hour] = power;
             } else if (activeOptimizationResult.discharge[hour] > 0) {
                 activeOptimizationResult.discharge[hour] = power;
+            }
+            recalculateManualSchedule();
+        }
+
+        // Chart Drag-and-Drop Power Adjustment Handler
+        function onChartDragEnd(hour, value) {
+            if (!activeOptimizationResult) return;
+            
+            const maxPower = parseFloat(document.getElementById('batPower').value) || 250;
+            let power = parseFloat(value) || 0;
+            power = Math.max(-maxPower, Math.min(power, maxPower));
+            
+            if (power > 0.01) {
+                activeOptimizationResult.charge[hour] = power;
+                activeOptimizationResult.discharge[hour] = 0;
+                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим ЗАРЯДУ (${power.toFixed(0)} кВт)`, 'warning');
+            } else if (power < -0.01) {
+                activeOptimizationResult.charge[hour] = 0;
+                activeOptimizationResult.discharge[hour] = -power;
+                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим РОЗРЯДУ (${(-power).toFixed(0)} кВт)`, 'warning');
+            } else {
+                activeOptimizationResult.charge[hour] = 0;
+                activeOptimizationResult.discharge[hour] = 0;
+                addSystemLog('UI', `Графік: год ${hour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
             }
             recalculateManualSchedule();
         }
