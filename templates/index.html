@@ -1995,6 +1995,8 @@
         let priceChart = null;
         let batteryChart = null;
         let activeOptimizationResult = null;
+        let dragOriginalPower = 0;
+        let dragOriginalMode = 'standby';
 
         // Fetch Metrics on Load
         function fetchMetrics() {
@@ -2384,6 +2386,20 @@
                             onDragStart: function(e, datasetIndex, index, value) {
                                 // Only allow dragging the power schedule (dataset index 0)
                                 if (datasetIndex !== 0) return false;
+                                
+                                // Store the original value and mode before drag changes them
+                                if (activeOptimizationResult) {
+                                    if (activeOptimizationResult.charge[index] > 0.01) {
+                                        dragOriginalMode = 'charge';
+                                        dragOriginalPower = activeOptimizationResult.charge[index];
+                                    } else if (activeOptimizationResult.discharge[index] > 0.01) {
+                                        dragOriginalMode = 'discharge';
+                                        dragOriginalPower = activeOptimizationResult.discharge[index];
+                                    } else {
+                                        dragOriginalMode = 'standby';
+                                        dragOriginalPower = 0;
+                                    }
+                                }
                             },
                             onDrag: function(e, datasetIndex, index, value) {
                                 e.target.style.cursor = 'grabbing';
@@ -2616,7 +2632,7 @@
             power = Math.max(-maxPower, Math.min(power, maxPower));
             
             if (!isShift || sourceHour === targetHour) {
-                // Vertical resizing
+                // Vertical resizing: apply the new height (power)
                 applyPowerToHour(sourceHour, power);
                 if (power > 0.01) {
                     addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим ЗАРЯДУ (${power.toFixed(0)} кВт)`, 'warning');
@@ -2626,14 +2642,18 @@
                     addSystemLog('UI', `Графік: год ${sourceHour}:00 переведено в режим ОЧІКУВАННЯ`, 'warning');
                 }
             } else {
-                // Horizontal shift-dragging column to another hour
+                // Horizontal shift-dragging column: preserve original height and mode!
                 applyPowerToHour(sourceHour, 0); // clear original hour
-                applyPowerToHour(targetHour, power); // apply power to target hour
-                const modeStr = power > 0.01 ? 'ЗАРЯД' : (power < -0.01 ? 'РОЗРЯД' : 'ОЧІКУВАННЯ');
-                addSystemLog('UI', `Переміщено: год ${sourceHour}:00 перенесено на год ${targetHour}:00 (${modeStr})`, 'info');
+                
+                // Keep the original power level and mode, ignoring drag height
+                const targetPower = dragOriginalMode === 'charge' ? dragOriginalPower : -dragOriginalPower;
+                applyPowerToHour(targetHour, targetPower);
+                
+                const modeStr = dragOriginalMode.toUpperCase();
+                addSystemLog('UI', `Переміщено: год ${sourceHour}:00 перенесено на год ${targetHour}:00 (${modeStr} ${dragOriginalPower.toFixed(0)} кВт)`, 'info');
             }
             
-            // Defer recalculation to avoid Chart.js plugin lifecycle errors (cannot destroy chart inside its event handler)
+            // Defer recalculation to avoid Chart.js plugin lifecycle errors
             setTimeout(recalculateManualSchedule, 50);
         }
 
