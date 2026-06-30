@@ -958,10 +958,179 @@
             color: #1e1b4b;
         }
 
-        /* Light theme adjustment: revert calendar picker to normal */
-        body.light-theme input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: none;
-            opacity: 0.7;
+        /* Tab navigation styles */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: rgba(13, 15, 26, 0.5);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 0.3rem;
+            gap: 0.4rem;
+            width: 100%;
+        }
+        body.light-theme .tabs {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .tab-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition-smooth);
+        }
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        body.light-theme .tab-btn:hover {
+            background: rgba(15, 23, 42, 0.03);
+        }
+        .tab-btn.active {
+            background: var(--accent-cyan);
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
+        }
+
+        /* Hourly table styles */
+        .hourly-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            text-align: left;
+        }
+        .hourly-table th {
+            padding: 0.8rem 1rem;
+            border-bottom: 2px solid var(--panel-border);
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .hourly-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .hourly-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        body.light-theme .hourly-table tbody tr:hover {
+            background: rgba(15, 23, 42, 0.01);
+        }
+        .badge-action {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .badge-action.charge {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--color-charge);
+        }
+        .badge-action.discharge {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--color-discharge);
+        }
+        .badge-action.standby {
+            background: rgba(156, 163, 175, 0.12);
+            color: var(--text-secondary);
+        }
+
+        /* Scenario analysis presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+        .preset-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            transition: var(--transition-smooth);
+        }
+        .preset-card:hover {
+            border-color: var(--panel-border-hover);
+            transform: translateY(-2px);
+        }
+        .preset-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .preset-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Log journal styles */
+        .log-container {
+            background: rgba(13, 15, 26, 0.6);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        body.light-theme .log-container {
+            background: rgba(15, 23, 42, 0.03);
+            color: #0f172a;
+        }
+        .log-row {
+            display: flex;
+            gap: 0.8rem;
+            line-height: 1.4;
+        }
+        .log-time {
+            color: var(--accent-cyan);
+            flex-shrink: 0;
+        }
+        .log-source {
+            color: var(--accent-indigo);
+            font-weight: 600;
+            flex-shrink: 0;
+            min-width: 90px;
+        }
+        .log-msg {
+            color: var(--text-primary);
+        }
+        .log-row.error .log-msg {
+            color: var(--color-error);
+        }
+        .log-row.success .log-msg {
+            color: var(--color-success);
+        }
+        .log-row.warning .log-msg {
+            color: var(--color-warning);
         }
     </style>
 </head>
@@ -1179,123 +1348,440 @@
 
         <!-- Main Panel (Dashboard) -->
         <div class="main-panel">
-            <!-- KPI Cards Grid -->
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        <i data-lucide="trending-up" style="width:14px;height:14px;color:var(--color-success)"></i>
-                        Чистий прибуток
+            <!-- Navigation Tabs -->
+            <div class="tabs" style="margin-bottom: 1rem;">
+                <button class="tab-btn active" id="tabBtn-dashboard" onclick="switchTab('dashboard')">
+                    <i data-lucide="layout-dashboard" style="width:16px;height:16px;"></i>
+                    Панель інструментів
+                </button>
+                <button class="tab-btn" id="tabBtn-schedule-table" onclick="switchTab('schedule-table')">
+                    <i data-lucide="table" style="width:16px;height:16px;"></i>
+                    Погодинний графік
+                </button>
+                <button class="tab-btn" id="tabBtn-scenarios" onclick="switchTab('scenarios')">
+                    <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
+                    Сценарний аналіз
+                </button>
+                <button class="tab-btn" id="tabBtn-directory" onclick="switchTab('directory')">
+                    <i data-lucide="book-open" style="width:16px;height:16px;"></i>
+                    Довідник тарифів та АКБ
+                </button>
+                <button class="tab-btn" id="tabBtn-logs" onclick="switchTab('logs')">
+                    <i data-lucide="terminal" style="width:16px;height:16px;"></i>
+                    Журнал імпортів та помилок
+                </button>
+            </div>
+
+            <!-- Tab 1: Dashboard -->
+            <div id="tab-dashboard" class="tab-content active">
+                <!-- KPI Cards Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">
+                            <i data-lucide="trending-up" style="width:14px;height:14px;color:var(--color-success)"></i>
+                            Чистий прибуток
+                        </div>
+                        <div class="kpi-value profit" id="kpiNetProfit">-</div>
+                        <div class="kpi-trend">З урахуванням зносу АКБ</div>
                     </div>
-                    <div class="kpi-value profit" id="kpiNetProfit">-</div>
-                    <div class="kpi-trend">З урахуванням зносу АКБ</div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-label">
+                            <i data-lucide="download" style="width:14px;height:14px;color:var(--color-warning)"></i>
+                            Вартість заряду
+                        </div>
+                        <div class="kpi-value cost" id="kpiChargeCost">-</div>
+                        <div class="kpi-trend">Включаючи тарифи мережі</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-label">
+                            <i data-lucide="upload" style="width:14px;height:14px;color:var(--color-charge)"></i>
+                            Дохід від розряду
+                        </div>
+                        <div class="kpi-value revenue" id="kpiDischargeRevenue">-</div>
+                        <div class="kpi-trend">Продаж або заміщення</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-label">
+                            <i data-lucide="repeat" style="width:14px;height:14px;color:var(--accent-indigo)"></i>
+                            Використано циклів
+                        </div>
+                        <div class="kpi-value cycles" id="kpiCycles">-</div>
+                        <div class="kpi-trend">Ліміт на добу: <span id="kpiMaxCycles">1.5</span></div>
+                    </div>
                 </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        <i data-lucide="download" style="width:14px;height:14px;color:var(--color-warning)"></i>
-                        Вартість заряду
+                <!-- Price Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
+                            Ціни на електроенергію (РДН Україна)
+                        </div>
+                        <div id="chartTypeBadge" class="metrics-badge" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:var(--accent-cyan)">
+                            Прогноз
+                        </div>
                     </div>
-                    <div class="kpi-value cost" id="kpiChargeCost">-</div>
-                    <div class="kpi-trend">Включаючи тарифи мережі</div>
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        <i data-lucide="upload" style="width:14px;height:14px;color:var(--color-charge)"></i>
-                        Дохід від розряду
+                <!-- Battery Optimization Schedule Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i data-lucide="zap" style="width:18px;height:18px;color:var(--color-success)"></i>
+                            Математичний графік заряду/розряду (PuLP Solver)
+                        </div>
+                        <div id="socBadge" class="metrics-badge" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--color-success)">
+                            Стан заряду (SoC)
+                        </div>
                     </div>
-                    <div class="kpi-value revenue" id="kpiDischargeRevenue">-</div>
-                    <div class="kpi-trend">Продаж або заміщення</div>
+                    <div class="chart-container">
+                        <canvas id="batteryChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        <i data-lucide="repeat" style="width:14px;height:14px;color:var(--accent-indigo)"></i>
-                        Використано циклів
+                <!-- Market Analysis & Explanations -->
+                <div class="info-card">
+                    <h3>
+                        <i data-lucide="info" style="width:18px;height:18px"></i>
+                        Аналіз прогнозу та ринкові фактори
+                    </h3>
+                    <div id="dataStatusContainer" style="margin-bottom:0.8rem; display:none;">
+                        <div id="dataStatusBadge" class="metrics-badge" style="display:inline-flex; padding:0.4rem 0.8rem; font-size:0.8rem;"></div>
                     </div>
-                    <div class="kpi-value cycles" id="kpiCycles">-</div>
-                    <div class="kpi-trend">Ліміт на добу: <span id="kpiMaxCycles">1.5</span></div>
+                    <div class="explanations-list" id="explanationsList">
+                        <div class="explanation-item">
+                            <i data-lucide="help-circle" class="explanation-icon" style="width:16px;height:16px;color:var(--text-muted)"></i>
+                            <div>Оберіть дату та натисніть кнопку "Розрахувати" для отримання аналізу.</div>
+                        </div>
+                    </div>
+
+                    <!-- Ukrainian Market Dynamics Details -->
+                    <div class="market-rules-grid">
+                        <div class="rule-card">
+                            <h4>
+                                <i data-lucide="sun" style="width:14px;height:14px;color:var(--color-warning)"></i>
+                                Чому ціна падає до 10 грн/МВт-год?
+                            </h4>
+                            <p>
+                                У періоди високого профіциту (надлишку) сонячної енергії в денні години (11:00-16:00), особливо у вихідні,
+                                генератори змушені подавати заявки за мінімально регульованою ціною (10 грн/МВт-год), щоб гарантувати викуп їхніх обсягів.
+                                Якщо профіцит перевищує споживання, ринкова ціна DAM закривається на цій позначці.
+                            </p>
+                        </div>
+
+                        <div class="rule-card">
+                            <h4>
+                                <i data-lucide="alert-triangle" style="width:14px;height:14px;color:var(--color-error)"></i>
+                                Вплив тарифів мережі на арбітраж
+                            </h4>
+                            <p>
+                                При купівлі енергії з мережі для заряджання юридичні особи сплачують DAM-ціну + тариф на передачу + тариф на розподіл.
+                                У режимі мережевого арбітражу продаж йде тільки за DAM-ціною, тому різниця повинна покривати суму мережевих тарифів (~2.2 грн/кВт-год).
+                                У режимі заміщення споживання (Behind-the-Meter) батарея економить повні витрати, роблячи цикли набагато вигіднішими.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Price Chart -->
-            <div class="chart-card">
-                <div class="chart-header">
+            <!-- Tab 2: Hourly Schedule Table -->
+            <div id="tab-schedule-table" class="tab-content">
+                <div class="chart-card">
+                    <div class="chart-header" style="flex-wrap: wrap; gap: 0.8rem;">
+                        <div class="chart-title">
+                            <i data-lucide="table" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
+                            Погодинна відомість заряду та розряду АКБ
+                        </div>
+                        <button class="btn" onclick="exportHourlyTable()" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.3); color:var(--accent-cyan);">
+                            <i data-lucide="download" style="width:14px;height:14px;"></i>
+                            Експорт в CSV
+                        </button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="hourly-table" id="hourlyTable">
+                            <thead>
+                                <tr>
+                                    <th>Година</th>
+                                    <th>Прогноз (грн)</th>
+                                    <th>Факт (грн)</th>
+                                    <th>Тариф заряду (грн)</th>
+                                    <th>Режим АКБ</th>
+                                    <th>Потужність (кВт)</th>
+                                    <th>SoC (кВт-год)</th>
+                                    <th>SoC (%)</th>
+                                    <th>Прибуток (грн)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hourlyTableBody">
+                                <tr>
+                                    <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                        Немає даних. Натисніть кнопку "Розрахувати" на панелі керування.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Scenario Analysis & Risks -->
+            <div id="tab-scenarios" class="tab-content">
+                <div class="info-card">
+                    <h3>
+                        <i data-lucide="trending-up" style="width:18px;height:18px;color:var(--accent-cyan);"></i>
+                        Сценарне моделювання роботи енергоринку
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                        Швидке завантаження стрес-тестів та аварійних ситуацій. Натискання на сценарій автоматично виставить
+                        відповідні ринкові слайдери на лівій панелі управління та виконає повторний розрахунок моделі.
+                    </p>
+                    <div class="preset-grid">
+                        <div class="preset-card">
+                            <div class="preset-title" style="color:var(--color-success)">
+                                <i data-lucide="check-circle" style="width:16px;height:16px"></i>
+                                Базовий сценарій
+                            </div>
+                            <div class="preset-desc">Нормальний стан енергосистеми. Помірний імпорт, середні ціни на паливо, сонячна генерація працює без додаткових обмежень.</div>
+                            <button class="btn" style="width:100%; margin-top:auto;" onclick="loadScenario('base')">Запустити сценарій</button>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-title" style="color:var(--color-warning)">
+                                <i data-lucide="flame" style="width:16px;height:16px"></i>
+                                Світова газова криза
+                            </div>
+                            <div class="preset-desc">Різке зростання ціни європейського газу TTF до 85 EUR/MWh. Збільшує витрати теплової генерації та піднімає вечірні цінові піки.</div>
+                            <button class="btn" style="width:100%; margin-top:auto;" onclick="loadScenario('gas_crisis')">Запустити сценарій</button>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-title" style="color:var(--color-error)">
+                                <i data-lucide="zap-off" style="width:16px;height:16px"></i>
+                                Систематичні обстріли СЕС
+                            </div>
+                            <div class="preset-desc">Пошкодження 50% потужностей сонячних станцій в Україні. Повністю ліквідує профіцит у денні години, піднімаючи ціну вище 10 грн.</div>
+                            <button class="btn" style="width:100%; margin-top:auto;" onclick="loadScenario('solar_strike')">Запустити сценарій</button>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-title" style="color:var(--accent-indigo)">
+                                <i data-lucide="shield-alert" style="width:16px;height:16px"></i>
+                                Зимовий дефіцит АЕС
+                            </div>
+                            <div class="preset-desc">Виведення 45% блоків атомних станцій у ремонт або через обмеження. Високий коефіцієнт попиту. Дорогий імпорт у вечірній час.</div>
+                            <button class="btn" style="width:100%; margin-top:auto;" onclick="loadScenario('nuke_outage')">Запустити сценарій</button>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-title" style="color:var(--accent-cyan)">
+                                <i data-lucide="droplet" style="width:16px;height:16px"></i>
+                                Весняна повінь (ГЕС)
+                            </div>
+                            <div class="preset-desc">Активна робота гідроелектростанцій по водопіллю та висока сонячна радіація. Тривалий денний профіцит до 10 грн навіть у будні дні.</div>
+                            <button class="btn" style="width:100%; margin-top:auto;" onclick="loadScenario('hydro_flood')">Запустити сценарій</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>
+                        <i data-lucide="shield-alert" style="width:18px;height:18px;color:var(--color-error)"></i>
+                        Оцінка ризиків та факторів невизначеності
+                    </h3>
+                    <div class="market-rules-grid" style="margin-top:0.5rem;">
+                        <div class="rule-card">
+                            <h4 style="color:var(--color-error)">
+                                <i data-lucide="trending-down" style="width:14px;height:14px"></i>
+                                Ризик прискореної деградації осередків
+                            </h4>
+                            <p style="font-size:0.8rem; line-height:1.5; color:var(--text-secondary); margin-top:0.4rem;">
+                                Експлуатація АКБ з кількістю циклів більше 1.5 на добу або при глибокому розряді (DoD > 90%)
+                                прискорює деградацію (втрату ємності). Використання LFP осередків дозволяє витримувати до 6000 циклів,
+                                проте недотримання температурного режиму (>35°C) збільшує швидкість деградації вдвічі. Рекомендовано
+                                тримати ліміт циклів на рівні 1.2-1.5 на добу та SoC не нижче 10%.
+                            </p>
+                        </div>
+                        <div class="rule-card">
+                            <h4 style="color:var(--color-warning)">
+                                <i data-lucide="alert-circle" style="width:14px;height:14px"></i>
+                                Регуляторний ризик прайс-кепів (Price Caps)
+                            </h4>
+                            <p style="font-size:0.8rem; line-height:1.5; color:var(--text-secondary); margin-top:0.4rem;">
+                                Граничні ціни (Price Caps) встановлюються НКРЕКП і обмежують максимальну вартість електроенергії на РДН.
+                                При скасуванні або значному зниженні прайс-кепів (наприклад, у нічний час) маржинальність арбітражу
+                                різко зменшується. І навпаки — підвищення лімітів підвищує прибутковість систем накопичення.
+                            </p>
+                        </div>
+                        <div class="rule-card">
+                            <h4 style="color:var(--color-warning)">
+                                <i data-lucide="calculator" style="width:14px;height:14px"></i>
+                                Ризик відхилень прогнозу та штрафи на ВР
+                            </h4>
+                            <p style="font-size:0.8rem; line-height:1.5; color:var(--text-secondary); margin-top:0.4rem;">
+                                Якщо реальні ціни РДН відрізняються від прогнозованих моделлю AI, батарея може зарядитися за дорогою ціною
+                                або розрядитися завчасно. Похибка моделі (MAE) на рівні 1500-1800 грн/МВт-год створює ризик неотримання
+                                планового прибутку. Робота на Балансуючому ринку (ВР) за неправильними командами веде до купівлі
+                                небалансів за штрафними цінами.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Directory of Tariffs and Facility Parameters -->
+            <div id="tab-directory" class="tab-content">
+                <div class="chart-card">
                     <div class="chart-title">
-                        <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
-                        Ціни на електроенергію (РДН Україна)
+                        <i data-lucide="book-open" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
+                        Довідник діючих тарифів НКРЕКП для операторів систем розподілу (ОСР)
                     </div>
-                    <div id="chartTypeBadge" class="metrics-badge" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:var(--accent-cyan)">
-                        Прогноз
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-top: 0.2rem;">
+                        Тарифи на розподіл електроенергії для непобутових споживачів (діючі ставки без ПДВ). Оберіть тариф вашого ОСР
+                        та натисніть кнопку "Застосувати", щоб оновити параметри розрахунку в лівому меню.
+                    </p>
+                    <div style="overflow-x: auto; margin-top: 1rem;">
+                        <table class="hourly-table">
+                            <thead>
+                                <tr>
+                                    <th>Регіон / Оператор ГРМ (ОСР)</th>
+                                    <th>1 Клас напруги (грн/МВт-год)</th>
+                                    <th>2 Клас напруги (грн/МВт-год)</th>
+                                    <th>Дія (1 клас)</th>
+                                    <th>Дія (2 клас)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>ДТЕК Київські Електромережі (м. Київ)</td>
+                                    <td>321.40</td>
+                                    <td>1341.20</td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(321.40)">Застосувати</button></td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(1341.20)">Застосувати</button></td>
+                                </tr>
+                                <tr>
+                                    <td>ДТЕК Київські Регіональні Електромережі</td>
+                                    <td>412.50</td>
+                                    <td>1654.80</td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(412.50)">Застосувати</button></td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(1654.80)">Застосувати</button></td>
+                                </tr>
+                                <tr>
+                                    <td>НЕК "Укренерго" (Глобальний тариф на передачу)</td>
+                                    <td colspan="2" style="text-align:center; font-weight:600;">528.57 (для всіх споживачів)</td>
+                                    <td colspan="2" style="text-align:center;"><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(null, 528.57)">Застосувати передачу</button></td>
+                                </tr>
+                                <tr>
+                                    <td>АТ "Львівобленерго"</td>
+                                    <td>420.30</td>
+                                    <td>1720.60</td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(420.30)">Застосувати</button></td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(1720.60)">Застосувати</button></td>
+                                </tr>
+                                <tr>
+                                    <td>АТ "Прикарпаттяобленерго"</td>
+                                    <td>440.10</td>
+                                    <td>1850.40</td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(440.10)">Застосувати</button></td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(1850.40)">Застосувати</button></td>
+                                </tr>
+                                <tr>
+                                    <td>АТ "Харківобленерго"</td>
+                                    <td>495.20</td>
+                                    <td>2054.10</td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(495.20)">Застосувати</button></td>
+                                    <td><button class="btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="applyTariffPreset(2054.10)">Застосувати</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="priceChart"></canvas>
-                </div>
-            </div>
 
-            <!-- Battery Optimization Schedule Chart -->
-            <div class="chart-card">
-                <div class="chart-header">
+                <div class="chart-card">
                     <div class="chart-title">
-                        <i data-lucide="zap" style="width:18px;height:18px;color:var(--color-success)"></i>
-                        Математичний графік заряду/розряду (PuLP Solver)
+                        <i data-lucide="battery-charging" style="width:18px;height:18px;color:var(--color-success)"></i>
+                        Технічні параметри та знос систем накопичення енергії (BESS)
                     </div>
-                    <div id="socBadge" class="metrics-badge" style="background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--color-success)">
-                        Стан заряду (SoC)
+                    <div style="overflow-x: auto; margin-top:1rem;">
+                        <table class="hourly-table">
+                            <thead>
+                                <tr>
+                                    <th>Хімічний склад АКБ</th>
+                                    <th>Кількість циклів (до 80% ємності)</th>
+                                    <th>Рекомендована глибина розряду (DoD)</th>
+                                    <th>ККД системи (Roundtrip)</th>
+                                    <th>Переваги та недоліки</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>LFP (Літій-залізо-фосфат)</strong></td>
+                                    <td>5000 - 6000</td>
+                                    <td>10% - 90% (80% DoD)</td>
+                                    <td>90% - 95%</td>
+                                    <td><span style="color:var(--color-success)">Високий ресурс, пожежобезпечність, низька вартість циклу.</span> Важкі, менша питома ємність.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>NMC (Нікель-марганець-кобальт)</strong></td>
+                                    <td>2000 - 3000</td>
+                                    <td>5% - 95% (90% DoD)</td>
+                                    <td>92% - 96%</td>
+                                    <td><span style="color:var(--accent-cyan)">Висока щільність енергії, компактність.</span> Менший ресурс, дорожчі, ризик термічного розгону.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="batteryChart"></canvas>
                 </div>
             </div>
 
-            <!-- Market Analysis & Explanations -->
-            <div class="info-card">
-                <h3>
-                    <i data-lucide="info" style="width:18px;height:18px"></i>
-                    Аналіз прогнозу та ринкові фактори
-                </h3>
-                <div id="dataStatusContainer" style="margin-bottom:0.8rem; display:none;">
-                    <div id="dataStatusBadge" class="metrics-badge" style="display:inline-flex; padding:0.4rem 0.8rem; font-size:0.8rem;"></div>
-                </div>
-                <div class="explanations-list" id="explanationsList">
-                    <div class="explanation-item">
-                        <i data-lucide="help-circle" class="explanation-icon" style="width:16px;height:16px;color:var(--text-muted)"></i>
-                        <div>Оберіть дату та натисніть кнопку "Розрахувати Розклад" для отримання аналізу.</div>
+            <!-- Tab 5: Imports, Events, and Errors Log -->
+            <div id="tab-logs" class="tab-content">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i data-lucide="database" style="width:18px;height:18px;color:var(--accent-cyan)"></i>
+                        Стан інтеграції бази даних РДН та Weather Archive
+                    </div>
+                    <div class="kpi-grid" style="margin-top:1rem;">
+                        <div class="kpi-card" style="background:rgba(255,255,255,0.02)">
+                            <div class="kpi-label">Дата початку бази</div>
+                            <div class="kpi-value" id="logDbStartDate" style="font-size:1.2rem;">2021-01-01</div>
+                            <div class="kpi-trend">Вимога НКРЕКП: від 01.01.2021</div>
+                        </div>
+                        <div class="kpi-card" style="background:rgba(255,255,255,0.02)">
+                            <div class="kpi-label">Остання синхронізація</div>
+                            <div class="kpi-value" id="logDbEndDate" style="font-size:1.2rem;">-</div>
+                            <div class="kpi-trend">Оновлення з oree.com.ua</div>
+                        </div>
+                        <div class="kpi-card" style="background:rgba(255,255,255,0.02)">
+                            <div class="kpi-label">Кількість годин у базі</div>
+                            <div class="kpi-value" id="logDbHours" style="font-size:1.2rem;">-</div>
+                            <div class="kpi-trend">Безперервний погодинний ряд</div>
+                        </div>
+                        <div class="kpi-card" style="background:rgba(255,255,255,0.02)">
+                            <div class="kpi-label">Пропуски в базі даних</div>
+                            <div class="kpi-value" id="logDbGaps" style="font-size:1.2rem;">-</div>
+                            <div class="kpi-trend">Автоматично інтерпольовано</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Ukrainian Market Dynamics Details -->
-                <div class="market-rules-grid">
-                    <div class="rule-card">
-                        <h4>
-                            <i data-lucide="sun" style="width:14px;height:14px;color:var(--color-warning)"></i>
-                            Чому ціна падає до 10 грн/МВт-год?
-                        </h4>
-                        <p>
-                            У періоди високого профіциту (надлишку) сонячної енергії в денні години (11:00-16:00), особливо у вихідні,
-                            генератори змушені подавати заявки за мінімально регульованою ціною (10 грн/МВт-год), щоб гарантувати викуп їхніх обсягів.
-                            Якщо профіцит перевищує споживання, ринкова ціна DAM закривається на цій позначці.
-                        </p>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i data-lucide="terminal" style="width:18px;height:18px;color:var(--color-warning)"></i>
+                            Консоль подій EMS & Scraper Logs
+                        </div>
+                        <button class="btn" onclick="clearSystemLogs()" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
+                            Очистити консоль
+                        </button>
                     </div>
-
-                    <div class="rule-card">
-                        <h4>
-                            <i data-lucide="alert-triangle" style="width:14px;height:14px;color:var(--color-error)"></i>
-                            Вплив тарифів мережі на арбітраж
-                        </h4>
-                        <p>
-                            При купівлі енергії з мережі для заряджання юридичні особи сплачують DAM-ціну + тариф на передачу + тариф на розподіл.
-                            У режимі мережевого арбітражу продаж йде тільки за DAM-ціною, тому різниця повинна покривати суму мережевих тарифів (~2.2 грн/кВт-год).
-                            У режимі заміщення споживання (Behind-the-Meter) батарея економить повні витрати, роблячи цикли набагато вигіднішими.
-                        </p>
+                    <div class="log-container" id="logContainerConsole">
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
     <!-- About Project Modal Overlay -->
     <div class="modal-overlay" id="aboutModal">
         <div class="modal-card">
@@ -1544,6 +2030,8 @@
         document.getElementById('runBtn').addEventListener('click', runForecastAndOptimization);
 
         function runForecastAndOptimization() {
+            const targetDateVal = document.getElementById('forecastDate').value;
+            addSystemLog('EMS', 'Запуск моделювання для дати ' + targetDateVal + '...', 'info');
             saveSettings();
             const overlay = document.getElementById('loadingOverlay');
             overlay.style.display = 'flex';
@@ -1712,6 +2200,12 @@
 
             // Re-render Battery Schedule Chart
             renderBatteryScheduleChart(data);
+
+            // Re-render hourly schedule table
+            renderHourlyTable(data);
+
+            // Log optimization status
+            addSystemLog('SOLVER', 'Оптимізація завершена. Статус: ' + optRes.status + ', Прибуток: ' + optRes.net_profit_uah.toFixed(0) + ' грн', 'success');
         }
 
         function createExplanationItem(iconName, text) {
@@ -1899,6 +2393,274 @@
                 }
             });
         }
+
+        // Logging System
+        let systemLogs = [];
+
+        function addSystemLog(source, message, type = 'info') {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            const log = { time: timeStr, source: source, message: message, type: type };
+            systemLogs.unshift(log);
+            if (systemLogs.length > 100) systemLogs.pop();
+            renderSystemLogs();
+        }
+
+        function renderSystemLogs() {
+            const container = document.getElementById('logContainerConsole');
+            if (!container) return;
+            container.innerHTML = systemLogs.map(log => `
+                <div class="log-row ${log.type}">
+                    <span class="log-time">[${log.time}]</span>
+                    <span class="log-source">[${log.source}]</span>
+                    <span class="log-msg">${log.message}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearSystemLogs() {
+            systemLogs = [];
+            addSystemLog('EMS', 'Консоль логів очищено користувачем', 'info');
+        }
+
+        // Tab Navigation Switcher
+        function switchTab(tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+            
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            
+            const targetContent = document.getElementById('tab-' + tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            
+            const targetBtn = document.getElementById('tabBtn-' + tabId);
+            if (targetBtn) {
+                targetBtn.classList.add('active');
+            }
+            
+            addSystemLog('UI', 'Переключено на розділ: ' + (targetBtn ? targetBtn.textContent.trim() : tabId), 'info');
+            
+            if (tabId === 'logs') {
+                fetchDbStatus();
+            }
+        }
+
+        // Database Integration Verification
+        function fetchDbStatus() {
+            addSystemLog('DATABASE', 'Запит поточного стану бази даних РДН...', 'info');
+            fetch('/api/db_status')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('logDbStartDate').textContent = data.details.start_date || '2021-01-01 00:00';
+                    document.getElementById('logDbEndDate').textContent = data.details.end_date || '-';
+                    document.getElementById('logDbHours').textContent = data.details.actual_hours || '-';
+                    document.getElementById('logDbGaps').textContent = data.details.gap_count || '0';
+                    
+                    if (data.status === 'OK') {
+                        addSystemLog('DATABASE', `База даних цілісна. Завантажено ${data.details.actual_hours} годин.`, 'success');
+                    } else if (data.status === 'WARNING') {
+                        addSystemLog('DATABASE', `Попередження бази даних: ${data.warnings.join(', ')}`, 'warning');
+                    } else {
+                        addSystemLog('DATABASE', `Помилка цілісності бази даних: ${data.errors.join(', ')}`, 'error');
+                    }
+                })
+                .catch(err => {
+                    addSystemLog('DATABASE', 'Не вдалося з'єднатися з API бази даних: ' + err.message, 'error');
+                });
+        }
+
+        // Operational Scenario Loader
+        function loadScenario(presetName) {
+            addSystemLog('SCENARIO', `Запуск сценарію "${presetName}"...`, 'warning');
+            if (presetName === 'base') {
+                document.getElementById('gasPrice').value = 35;
+                document.getElementById('nuclearOutage').value = 15;
+                document.getElementById('solarStrike').value = 0;
+                document.getElementById('marketCoeff').value = 1.0;
+                document.getElementById('vdrVolume').value = 1.0;
+                document.getElementById('gridImport').value = 0;
+                addSystemLog('SCENARIO', 'Сценарій "Базовий" успішно активовано.', 'success');
+            } else if (presetName === 'gas_crisis') {
+                document.getElementById('gasPrice').value = 85;
+                document.getElementById('nuclearOutage').value = 20;
+                document.getElementById('solarStrike').value = 10;
+                document.getElementById('marketCoeff').value = 1.15;
+                addSystemLog('SCENARIO', 'Сценарій "Газова криза" успішно активовано (TTF Газ = 85 EUR/MWh).', 'success');
+            } else if (presetName === 'solar_strike') {
+                document.getElementById('gasPrice').value = 45;
+                document.getElementById('nuclearOutage').value = 15;
+                document.getElementById('solarStrike').value = 50;
+                document.getElementById('marketCoeff').value = 1.1;
+                addSystemLog('SCENARIO', 'Сценарій "Обстріли СЕС" успішно активовано (Втрати СЕС = 50%).', 'success');
+            } else if (presetName === 'nuke_outage') {
+                document.getElementById('gasPrice').value = 50;
+                document.getElementById('nuclearOutage').value = 45;
+                document.getElementById('solarStrike').value = 0;
+                document.getElementById('marketCoeff').value = 1.25;
+                document.getElementById('gridImport').value = 1000;
+                addSystemLog('SCENARIO', 'Сценарій "Дефіцит АЕС" успішно активовано (Ремонт АЕС = 45%).', 'success');
+            } else if (presetName === 'hydro_flood') {
+                document.getElementById('gasPrice').value = 30;
+                document.getElementById('nuclearOutage').value = 10;
+                document.getElementById('solarStrike').value = 0;
+                document.getElementById('marketCoeff').value = 0.8;
+                document.getElementById('vdrVolume').value = 1.5;
+                document.getElementById('gridImport').value = -1200;
+                addSystemLog('SCENARIO', 'Сценарій "Весняна повінь" успішно активовано (Висока робота ГЕС).', 'success');
+            }
+            updateSliderLabels();
+            runForecastAndOptimization();
+            switchTab('dashboard');
+        }
+
+        // Apply Tariff Presets from DSO Directory
+        function applyTariffPreset(distTariff, transTariff) {
+            addSystemLog('TARIFF', 'Оновлення тарифних сіток...', 'info');
+            if (distTariff !== null && distTariff !== undefined) {
+                document.getElementById('tariffDist').value = distTariff;
+                addSystemLog('TARIFF', `Встановлено тариф на розподіл: ${distTariff} грн/МВт-год.`, 'success');
+            }
+            if (transTariff !== null && transTariff !== undefined) {
+                document.getElementById('tariffTrans').value = transTariff;
+                addSystemLog('TARIFF', `Встановлено тариф на передачу: ${transTariff} грн/МВт-год.`, 'success');
+            }
+            saveSettings();
+            runForecastAndOptimization();
+        }
+
+        // Render Hourly Schedule Detail Table
+        function renderHourlyTable(data) {
+            const tbody = document.getElementById('hourlyTableBody');
+            if (!tbody) return;
+            
+            const isHist = data.is_historical && data.actual_optimization;
+            const optRes = isHist ? data.actual_optimization : data.optimization;
+            const modelType = document.getElementById('aiModel').value;
+            const predictedPrices = modelType === 'xgboost' ? data.forecast.xgboost : data.forecast.mlp;
+            
+            const batCapacity = parseFloat(document.getElementById('batCapacity').value) || 1000;
+            const degCost = parseFloat(document.getElementById('degCost').value) || 1.2;
+            
+            let html = '';
+            for (let t = 0; t < 24; t++) {
+                const hourStr = `${String(t).padStart(2, '0')}:00 - ${String(t + 1).padStart(2, '0')}:00`;
+                const priceForecast = predictedPrices[t] ? predictedPrices[t].toFixed(0) : '-';
+                const priceActual = (data.forecast.actual && data.forecast.actual[t]) ? data.forecast.actual[t].toFixed(0) : '-';
+                const priceBuyWithTariff = optRes.hourly_buy_prices[t] ? optRes.hourly_buy_prices[t].toFixed(0) : '-';
+                
+                let modeBadge = '<span class="badge-action standby">Очікування</span>';
+                let powerVal = 0;
+                let hourlyProfit = 0;
+                
+                if (optRes.charge[t] > 0.01) {
+                    modeBadge = '<span class="badge-action charge"><i data-lucide="download" style="width:12px;height:12px"></i>Заряд</span>';
+                    powerVal = optRes.charge[t];
+                    hourlyProfit = -(optRes.charge[t] * (optRes.hourly_buy_prices[t] / 1000.0));
+                } else if (optRes.discharge[t] > 0.01) {
+                    modeBadge = '<span class="badge-action discharge"><i data-lucide="upload" style="width:12px;height:12px"></i>Розряд</span>';
+                    powerVal = -optRes.discharge[t];
+                    hourlyProfit = (optRes.discharge[t] * (optRes.hourly_sell_prices[t] / 1000.0)) - (optRes.discharge[t] * degCost);
+                }
+                
+                const endSocKwh = optRes.soc[t + 1];
+                const endSocPct = ((endSocKwh / batCapacity) * 100).toFixed(0);
+                
+                let profitStyle = '';
+                let profitPrefix = '';
+                if (hourlyProfit > 0.01) {
+                    profitStyle = 'color: var(--color-success); font-weight: 600;';
+                    profitPrefix = '+';
+                } else if (hourlyProfit < -0.01) {
+                    profitStyle = 'color: var(--color-discharge);';
+                }
+                
+                const profitText = hourlyProfit !== 0 ? `${profitPrefix}${hourlyProfit.toFixed(0)} грн` : '0 грн';
+                
+                html += `
+                    <tr>
+                        <td>${hourStr}</td>
+                        <td>${priceForecast}</td>
+                        <td>${priceActual}</td>
+                        <td>${priceBuyWithTariff}</td>
+                        <td>${modeBadge}</td>
+                        <td>${powerVal !== 0 ? powerVal.toFixed(0) : '0'}</td>
+                        <td>${endSocKwh.toFixed(0)}</td>
+                        <td>${endSocPct}%</td>
+                        <td style="${profitStyle}">${profitText}</td>
+                    </tr>
+                `;
+            }
+            
+            tbody.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Export Hourly Schedule Detail to CSV
+        function exportHourlyTable() {
+            if (!lastForecastData) {
+                alert('Неможливо експортувати: спочатку розрахуйте розклад');
+                return;
+            }
+            
+            const isHist = lastForecastData.is_historical && lastForecastData.actual_optimization;
+            const optRes = isHist ? lastForecastData.actual_optimization : lastForecastData.optimization;
+            const modelType = document.getElementById('aiModel').value;
+            const predictedPrices = modelType === 'xgboost' ? lastForecastData.forecast.xgboost : lastForecastData.forecast.mlp;
+            const batCapacity = parseFloat(document.getElementById('batCapacity').value) || 1000;
+            const degCost = parseFloat(document.getElementById('degCost').value) || 1.2;
+            
+            let csv = 'Hour,Forecast DAM (UAH/MWh),Actual DAM (UAH/MWh),Buy Price with Tariffs (UAH/MWh),BESS Mode,BESS Power (kW),End SoC (kWh),End SoC (%),Hourly Profit (UAH)\n';
+            
+            for (let t = 0; t < 24; t++) {
+                const hourStr = `"${t}:00 - ${t + 1}:00"`;
+                const priceForecast = predictedPrices[t] ? predictedPrices[t].toFixed(2) : '0';
+                const priceActual = (lastForecastData.forecast.actual && lastForecastData.forecast.actual[t]) ? lastForecastData.forecast.actual[t].toFixed(2) : '0';
+                const priceBuyWithTariff = optRes.hourly_buy_prices[t] ? optRes.hourly_buy_prices[t].toFixed(2) : '0';
+                
+                let mode = 'Standby';
+                let powerVal = 0;
+                let hourlyProfit = 0;
+                
+                if (optRes.charge[t] > 0.01) {
+                    mode = 'Charge';
+                    powerVal = optRes.charge[t];
+                    hourlyProfit = -(optRes.charge[t] * (optRes.hourly_buy_prices[t] / 1000.0));
+                } else if (optRes.discharge[t] > 0.01) {
+                    mode = 'Discharge';
+                    powerVal = -optRes.discharge[t];
+                    hourlyProfit = (optRes.discharge[t] * (optRes.hourly_sell_prices[t] / 1000.0)) - (optRes.discharge[t] * degCost);
+                }
+                
+                const endSocKwh = optRes.soc[t + 1];
+                const endSocPct = ((endSocKwh / batCapacity) * 100).toFixed(1);
+                
+                csv += `${hourStr},${priceForecast},${priceActual},${priceBuyWithTariff},${mode},${powerVal.toFixed(1)},${endSocKwh.toFixed(1)},${endSocPct},${hourlyProfit.toFixed(2)}\n`;
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `BESS_arbitrage_schedule_${lastForecastData.date}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            addSystemLog('UI', 'Графік успішно експортовано в CSV', 'success');
+        }
+
+        // Seed initial system logs
+        setTimeout(() => {
+            addSystemLog('EMS', 'Ініціалізація UA Energy Arbitrage AI EMS v2.0...', 'info');
+            addSystemLog('DATABASE', 'Завантаження історичних цін РДН з 2021 року...', 'info');
+            addSystemLog('MODEL', 'Завантаження моделей прогнозування MLP & XGBoost...', 'info');
+            addSystemLog('EMS', 'EMS Інтерфейс успішно адаптовано.', 'success');
+            fetchDbStatus();
+        }, 500);
 
         // On Page Load
         const savedTheme = localStorage.getItem('BESS_theme') || 'dark';

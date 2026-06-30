@@ -42,6 +42,19 @@ def retrain():
             'message': f'Error during training: {str(e)}'
         }), 500
 
+@app.route('/api/db_status', methods=['GET'])
+def db_status():
+    try:
+        report = dm.verify_data_completeness()
+        return jsonify(report)
+    except Exception as e:
+        return jsonify({
+            'status': 'ERROR',
+            'errors': [f'Помилка сервера: {str(e)}'],
+            'warnings': [],
+            'details': {}
+        }), 500
+
 @app.route('/api/forecast', methods=['POST'])
 def forecast():
     try:
