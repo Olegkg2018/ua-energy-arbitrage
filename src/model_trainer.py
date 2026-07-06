@@ -423,9 +423,31 @@ def predict_next_day(forecast_date, forecast_weather, last_prices, factors):
     
     final_xgb = []
     final_mlp = []
+    
+    # Retrieve slider inputs from factors
+    gas_val = float(factors.get('Gas_Price', 35.0))
+    nuke_outage_val = float(factors.get('Nuclear_Outage', 0.15))
+    market_coeff_val = float(factors.get('Market_Coeff', 1.0))
+    grid_import_val = float(factors.get('Grid_Import_Export', 0.0))
+    solar_strike_val = float(factors.get('Solar_Strike', 0.0))
+    
+    # Calculate physical adjustments
+    # 1. Fuel cost adjustment (baseline gas is 35 EUR/MWh)
+    gas_adj = (gas_val - 35.0) * 15.0  # ~15 UAH/MWh price change per 1 EUR/MWh gas price change
+    
+    # 2. Nuclear availability adjustment (baseline is 15% outage)
+    nuke_adj = (nuke_outage_val - 0.15) * 4000.0  # outage increases price, availability decreases it
+    
+    # 3. Grid import/export adjustment (baseline is 0 MW)
+    import_adj = -(grid_import_val / 1000.0) * 300.0  # imports lower price, exports raise it
+    
     for h in range(24):
         p_xgb = pred_xgb[h]
         p_mlp = pred_mlp[h]
+        
+        # Apply physical scenario adjustments to the ML baseline predictions
+        p_xgb = (p_xgb + gas_adj + nuke_adj + import_adj) * market_coeff_val
+        p_mlp = (p_mlp + gas_adj + nuke_adj + import_adj) * market_coeff_val
         
         # Physical surplus check:
         # Midday hours (10:00 to 16:00)
@@ -436,16 +458,24 @@ def predict_next_day(forecast_date, forecast_weather, last_prices, factors):
         strike = records[h]['Solar_Strike']
         wind = records[h]['Wind_Speed']
         nuke_outage = records[h]['Nuclear_Outage']
-        market_coeff = records[h]['Market_Coeff']
         
+        # Adjust midday prices if solar strike is high
+        if is_midday and rad > 0:
+            p_xgb += solar_strike_val * 800.0
+            p_mlp += solar_strike_val * 800.0
+            
         # Conditions for solar surplus
-        solar_surplus = is_midday and (rad > 500) and (clouds < 25) and (strike < 0.3) and (is_we == 1 or market_coeff < 0.85)
+        solar_surplus = is_midday and (rad > 500) and (clouds < 25) and (solar_strike_val < 0.3) and (is_we == 1 or market_coeff_val < 0.85)
         wind_surplus = (wind > 35) and (is_we == 1)
         
         # If surplus expected, force prices to 10 UAH
-        if (solar_surplus or wind_surplus) and nuke_outage < 0.35:
+        if (solar_surplus or wind_surplus) and nuke_outage_val < 0.35:
             p_xgb = 10.0
             p_mlp = 10.0
+            
+        # Clamp to realistic price bounds
+        p_xgb = np.clip(p_xgb, 10.0, 16000.0)
+        p_mlp = np.clip(p_mlp, 10.0, 16000.0)
             
         final_xgb.append(float(p_xgb))
         final_mlp.append(float(p_mlp))
